@@ -32,7 +32,7 @@ public class ClientTUI{
 			System.out.println("ENTER PORT NUMBER.................2");
 			System.out.println("SET HOST ADRESS...................3");
 			System.out.println("START A GAME......................4");
-			System.out.println("Send message!!!...................5");
+			System.out.println("Send message!!!.......................5");
 			System.out.println("Exit..............................6");
 		}
 		
