@@ -71,7 +71,7 @@ public class Server extends Thread {
 	
 	
 	public void HandleIncommingMesg(ClientHandler client, String message) {
-		String[] messagesplit = message.split("");
+		String[] messagesplit = message.split(Constants.DELIMITER);
 		if(messagesplit[0].equals(Constants.HANDSHAKE)) {
 			String name = messagesplit[1];
 			client.setPlayerName(name);
