@@ -20,69 +20,60 @@ public class ClientTUI{
 		
 		public void start() {
 			int choice = -1;
-			while (choice != 4) {
+			while (choice != 3) {
 				displayMenu();
 				choice = readIntWithPrompt("Enter choice:");
 				executeChoice(choice);
 			}
 			
-			while (choice != 8) {
-				displayMenu2();
-				choice = readIntWithPrompt("Enter choice:");
-				executeChoice(choice);
-			}
+			
 		}
 
 		private void displayMenu(){
 			System.out.println();
 			System.out.println("Enter the number denoting the action");
-			System.out.println("ENTER NAME........................1");
-			System.out.println("ENTER PORT NUMBER.................2");
-			System.out.println("SET HOST ADRESS...................3");
-			System.out.println("START A GAME......................4");
-		}
-		
-		public void displayMenu2() {
-			System.out.println();
-			System.out.println("Enter the number denoting the action");
-			System.out.println("Send Handshake.....................5");
-			System.out.println("SEND Config........................6");
-			System.out.println("PlayMove...........................7");
-			System.out.println("Exit...............................8");
-			
+			System.out.println("ENTER PORT NUMBER.................1");
+			System.out.println("SET HOST ADRESS...................2");
+			System.out.println("SEND HANDSHAKE....................3");
 		}
 		
 		
 		private void executeChoice(int choice) {
 			if(choice == 1) {
-				String name = readStringWithPrompt("enter a name:  ");
-				client.initializeName(name);
-			} else if(choice == 2) {
 				int port = readIntWithPrompt("Enter a port:  ");
 				client.initializePort(port);
-			} else if(choice == 3) {
+			} else if(choice == 2) {
 				String adress = readStringWithPrompt("Enter a host adress:  ");
 				client.initializeIP(adress);
-			} else if(choice == 4) {
-				System.out.println("Preparing Game");
+			} else if(choice == 3) {
+				String name = readStringWithPrompt("what is your name?");
+				System.out.println("halloooo");
 				client.startGame();
+				System.out.println("2");
 				client.start();
-			}else if(choice == 5) {
-				String name = readStringWithPrompt("enter a name:  ");
 				client.sendMessage(Constants.HANDSHAKE+Constants.DELIMITER+name);
-			}else if(choice == 6) {
-				int color  = readIntWithPrompt("What is your preffered color:  ");
-				int size  = readIntWithPrompt("What is your preffered size:    ");
+				} 
+		}
+		
+		public void handShakeAcknowledged(boolean isLeader) {
+			if(isLeader) {
+				System.out.println("You are the leader!");
+				int size = readIntWithPrompt("What is your prefered size:   ");
+				int color = readIntWithPrompt("What is your preferred color:  ");
 				client.sendMessage(Constants.SEND_CONFIG+Constants.DELIMITER+color+Constants.DELIMITER+size);
-			} else if(choice == 7) {
-				int move  = readIntWithPrompt("What is your preffered move:  ");
-				client.sendMessage(Constants.MOVE+Constants.DELIMITER+client.getGameid()+Constants.DELIMITER+client.getPlayerName()+Constants.DELIMITER+move);
-			}
-			else {
-				System.out.println("choice not valid!");
+			} else {
+				System.out.println("you are not the leader");
 			}
 		}
 		
+		public void getMove() {
+			int move = readIntWithPrompt("what is your next move?");
+			client.sendMessage(Constants.MOVE+Constants.DELIMITER+1+Constants.DELIMITER+client.getPlayerName()+Constants.DELIMITER+move);
+			
+			}
+		public void invalidMove() {
+			System.out.println("you played a invalid move!");
+		}
 		
 		
 		private int readIntWithPrompt(String prompt) {
@@ -106,7 +97,6 @@ public class ClientTUI{
 				System.out.flush();
 			}
 			String input = in.next();
-			in.nextLine();
 			return input;
 		}
 

@@ -16,6 +16,7 @@ public class Game extends Thread {
 	String status = Constants.WAITING;
 	int turn = Constants.BLACK;
 	History history;
+	int passed = 0;
 	boolean configured = false;
 
 	public Game() {
@@ -107,19 +108,20 @@ public class Game extends Thread {
 		System.out.println(message);
 		String[] messagesplit = message.split("\\" + Constants.DELIMITER);
 		if (messagesplit[0].equals(Constants.HANDSHAKE)) {
-			String name = messagesplit[1];
-			client.setPlayerName(name);
-			if (configured == false) {
-				assignFirstPlayer(client);
-			} else {
-				assignSecondPlayer(client);
+			if (players[0] != null || players[1] != null) {
+				String name = messagesplit[1];
+				client.setPlayerName(name);
+				if (players[0] == null) {
+					assignFirstPlayer(client);
+				} else {
+					assignSecondPlayer(client);
+				}
 			}
 		} else if (messagesplit[0].equals(Constants.SEND_CONFIG)) {
 			if (configured == false && client.equals(players[0])) {
 				int color = Integer.parseInt(messagesplit[1]);
 				int size = Integer.parseInt(messagesplit[2]);
 				configureGame(color, size);
-
 			}
 		} else if (messagesplit[0].equals(Constants.MOVE)) {
 			handleMove(client, messagesplit);
@@ -134,12 +136,29 @@ public class Game extends Thread {
 		int move = Integer.parseInt(message[3]);
 		if (isTurn(client)) {
 			if (isValidMove(move, client)) {
+				if (move == -1) {
+					passed++;
+					System.out.println("Player passed!");
+					changeTurn();
+					if(passed ==2) {
+						finish();
+						endGame();
+					} else {
+						client.sendMessage(Constants.ACKNOWLEDGE_MOVE + Constants.DELIMITER + message[1] + Constants.DELIMITER
+								+ move +";"+ getColor(client) + Constants.DELIMITER + getGameState());
+						ClientHandler opponent = getOpponent(client);
+						opponent.sendMessage(Constants.ACKNOWLEDGE_MOVE + Constants.DELIMITER + message[1] + Constants.DELIMITER
+								+ move +";"+ getColor(opponent)+ Constants.DELIMITER + getGameState());
+					}
+				} else {
 				playMove(move, client);
 				client.sendMessage(Constants.ACKNOWLEDGE_MOVE + Constants.DELIMITER + message[1] + Constants.DELIMITER
-						+ move + Constants.DELIMITER + getGameState());
+						+ move +";"+ getColor(client) + Constants.DELIMITER + getGameState());
 				ClientHandler opponent = getOpponent(client);
 				opponent.sendMessage(Constants.ACKNOWLEDGE_MOVE + Constants.DELIMITER + message[1] + Constants.DELIMITER
-						+ move + Constants.DELIMITER + getGameState());
+						+ move +";"+ getColor(opponent)+ Constants.DELIMITER + getGameState());
+				passed = 0;
+				}
 			} else {
 				client.sendMessage(Constants.INVALID_MOVE + "not a valid move!");
 			}
@@ -147,6 +166,11 @@ public class Game extends Thread {
 			client.sendMessage(Constants.INVALID_MOVE + "Not your turn!");
 		}
 		// TODO sent confirmation!
+	}
+	
+	public void endGame() {
+		players[0].sendMessage("Game over!");
+		players[1].sendMessage("Game over!");
 	}
 
 	public void assignFirstPlayer(ClientHandler player) {
@@ -164,6 +188,7 @@ public class Game extends Thread {
 			AcknowledgeConfig();
 		}
 	}
+	
 
 	public void configureGame(int color, int size) {
 		setColorPlayer(players[0], color);
@@ -175,7 +200,7 @@ public class Game extends Thread {
 	public void AcknowledgeConfig() {
 		for (ClientHandler player : players) {
 			player.sendMessage(Constants.ACKNOWLEDGE_CONFIG + Constants.DELIMITER + player.getPlayerName()
-					+ Constants.DELIMITER + getColor(players[0]) + Constants.DELIMITER + getSize() + Constants.DELIMITER
+					+ Constants.DELIMITER + getColor(player) + Constants.DELIMITER + getSize() + Constants.DELIMITER
 					+ getGameState() + Constants.DELIMITER + getOpponent(player).getPlayerName());
 		}
 	}
