@@ -17,7 +17,7 @@ import java.net.Socket;
 
 
 public class ClientHandler extends Thread {
-    private Server server;
+    private Game game;
     private BufferedReader in;
     private BufferedWriter out;
     private String playername;
@@ -28,8 +28,8 @@ public class ClientHandler extends Thread {
      * Initialises both Data streams.
      */
     //@ requires serverArg != null && sockArg != null;
-    public ClientHandler(Server serverArg, Socket sockArg) throws IOException {
-        this.server = serverArg;
+    public ClientHandler(Game serverArg, Socket sockArg) throws IOException {
+        this.game = serverArg;
         this.sock = sockArg;
         this.in = new BufferedReader(new InputStreamReader(this.sock.getInputStream()));
         this.out = new BufferedWriter(new OutputStreamWriter(this.sock.getOutputStream()));
@@ -64,10 +64,10 @@ public class ClientHandler extends Thread {
         String nextLine;
         try {
             while ((nextLine = this.in.readLine()) != null) {
-                server.HandleIncommingMesg(this, nextLine);
+                game.HandleIncommingMesg(this, nextLine);
             }
         } catch (IOException e) {
-            server.removeHandler(this);;
+            //game.removeHandler(this);;
         }
     }
 
@@ -94,6 +94,6 @@ public class ClientHandler extends Thread {
      * is no longer participating in the chat. 
      */
     private void shutdown() {
-        server.removeHandler(this);
+        //server.removeHandler(this);
     }
 }

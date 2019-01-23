@@ -9,6 +9,10 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 
+import com.nedap.go.gui.GoGuiIntegrator;
+
+import Game.Constants;
+
 
 /**
  * Client class for a simple client-server application
@@ -25,6 +29,9 @@ public class Client extends Thread {
 	private int port;
 	private String name; 
 	private InetAddress host;
+	private int gameID;
+	private int color;
+	private GoGuiIntegrator gogui;
 
 	public static void main(String args[]) throws IOException {
 		Client client = new Client();
@@ -64,6 +71,13 @@ public class Client extends Thread {
 		}
 	}
 	
+	public String getPlayerName() {
+		return clientName;
+	}
+	public int getGameid() {
+		return gameID;
+	}
+	
 	public void initializeIP(String ip) {
 		try {
 		host = InetAddress.getByName(ip);
@@ -88,13 +102,63 @@ public class Client extends Thread {
 		String line = null;
 		try {
 			while ((line = in.readLine()) != null) {
-					System.out.println(line);
+					handleMessage(line);
 				}
 		} catch (IOException e) {
 			System.out.println("connection lost!");
 		}
 	}
 	
+	public synchronized void handleMessage(String message) {
+		String[] messagesplit = message.split("\\"+Constants.DELIMITER);
+		System.out.println(message);
+		if(messagesplit[0].equals(Constants.ACKNOWLEDGE_HANDSHAKE)) {
+			gameID = Integer.parseInt(messagesplit[1]);
+		} else if(messagesplit[0].contentEquals(Constants.ACKNOWLEDGE_MOVE)) {
+			String[] status = messagesplit[3].split(";");
+			String board = status[2];
+			drawBoard(board);
+			String[] stones = board.split("");
+			int size = stones.length;
+			int count = 0;
+			for(String stone: stones) {
+				System.out.print(stone);
+				count++;
+				if(count == (int)Math.sqrt(size)) {
+					System.out.println("");
+					count = 0;
+				}
+			}
+			
+		} else if(messagesplit[0].equals(Constants.ACKNOWLEDGE_CONFIG)) {
+			color = Integer.parseInt(messagesplit[2]);
+			System.out.println("GUI should start working!!!");
+			gogui = new GoGuiIntegrator(false, true, Integer.parseInt(messagesplit[3]));
+			gogui.startGUI();
+		}else if(messagesplit[0].equals(Constants.INVALID_MOVE)) { 
+				System.out.println("Invalid move!");
+		}
+	}
+	
+	
+	public void drawBoard(String board) {
+		System.out.println("komt bij gui");
+		System.out.println("bord is:    "+ board);
+		String stones[] = board.split("");
+		int size = stones.length;
+		int width = (int) Math.sqrt(size);
+		gogui.clearBoard();
+		for (int i = 0; i < size; i++) {
+				int col =  i % (width);
+				int row = (i - col) / (width);
+				if (stones[i].equals("1")) {
+					gogui.addStone(col, row, false);
+				} else if (stones[i].equals("2")) {
+					gogui.addStone(col, row, true);
+				}
+
+			}
+	}
 	public void sendMessage(String msg) {
 		try {
 			out.write(msg);

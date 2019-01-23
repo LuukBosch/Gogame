@@ -6,6 +6,8 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Scanner;
 
+import Game.Constants;
+
 
 public class ClientTUI{
 		Client client;
@@ -18,8 +20,14 @@ public class ClientTUI{
 		
 		public void start() {
 			int choice = -1;
-			while (choice != 6) {
+			while (choice != 4) {
 				displayMenu();
+				choice = readIntWithPrompt("Enter choice:");
+				executeChoice(choice);
+			}
+			
+			while (choice != 8) {
+				displayMenu2();
 				choice = readIntWithPrompt("Enter choice:");
 				executeChoice(choice);
 			}
@@ -32,8 +40,16 @@ public class ClientTUI{
 			System.out.println("ENTER PORT NUMBER.................2");
 			System.out.println("SET HOST ADRESS...................3");
 			System.out.println("START A GAME......................4");
-			System.out.println("Send message!!!.......................5");
-			System.out.println("Exit..............................6");
+		}
+		
+		public void displayMenu2() {
+			System.out.println();
+			System.out.println("Enter the number denoting the action");
+			System.out.println("Send Handshake.....................5");
+			System.out.println("SEND Config........................6");
+			System.out.println("PlayMove...........................7");
+			System.out.println("Exit...............................8");
+			
 		}
 		
 		
@@ -52,8 +68,15 @@ public class ClientTUI{
 				client.startGame();
 				client.start();
 			}else if(choice == 5) {
-				String Text = readStringWithPrompt("enter a name:  ");
-				client.sendMessage(Text);
+				String name = readStringWithPrompt("enter a name:  ");
+				client.sendMessage(Constants.HANDSHAKE+Constants.DELIMITER+name);
+			}else if(choice == 6) {
+				int color  = readIntWithPrompt("What is your preffered color:  ");
+				int size  = readIntWithPrompt("What is your preffered size:    ");
+				client.sendMessage(Constants.SEND_CONFIG+Constants.DELIMITER+color+Constants.DELIMITER+size);
+			} else if(choice == 7) {
+				int move  = readIntWithPrompt("What is your preffered move:  ");
+				client.sendMessage(Constants.MOVE+Constants.DELIMITER+client.getGameid()+Constants.DELIMITER+client.getPlayerName()+Constants.DELIMITER+move);
 			}
 			else {
 				System.out.println("choice not valid!");

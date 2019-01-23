@@ -15,24 +15,25 @@ import Game.Constants;
 
 public class Server extends Thread {
 	private int port;
-	private HashSet<ClientHandler> clients;
+	private HashMap<Integer, Game> gameNumber_games;
 	private HashMap<String, Integer> client_GameID;
 	private HashMap<Integer, Game> gameID_Game;
 	private boolean gameAvailable;
 	private boolean waitingforConfig;
-	private int gameID = 0;
+	private int gameNumber = 0;
 
 	public static void main(String args[]) {
 		Server test = new Server();
-		System.out.println(test.getPort());
 		test.start();
 	}
 
 	public Server() {
 		port = initializePort();
-		clients = new HashSet<ClientHandler>();
+		//clients = new HashSet<ClientHandler>();
 		client_GameID = new HashMap<String, Integer>();
 		gameID_Game = new HashMap<Integer, Game>();
+		gameNumber_games = new HashMap<Integer, Game>();
+		
 	}
 
 	public int initializePort() {
@@ -58,37 +59,40 @@ public class Server extends Thread {
 			while (true) {
 				System.out.println("Listening!");
 				Socket sock = serverSocket.accept();
-				ClientHandler newHandler = new ClientHandler(this, sock);
-				System.out.println("connected!");
-				addHandler(newHandler);
-				newHandler.start();
+				System.out.println("connected to new Client!");
+				addToGame(sock);
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println("not a valid port!");
 		}
 
 	}
 	
 	
+	/**
 	public void HandleIncommingMesg(ClientHandler client, String message) {
-		String[] messagesplit = message.split(Constants.DELIMITER);
+		System.out.println(message);
+		String[] messagesplit = message.split("\\" + Constants.DELIMITER);
 		if(messagesplit[0].equals(Constants.HANDSHAKE)) {
 			String name = messagesplit[1];
 			client.setPlayerName(name);
 			assignToGame(client);
-		} else if(messagesplit[0].equals(Constants.REQUEST_CONFIG)) {
+		} else if(messagesplit[0].equals(Constants.SEND_CONFIG)) {
+			System.out.println(message + "  requestconfig");
 			int color = Integer.parseInt(messagesplit[1]);
 			int size = Integer.parseInt(messagesplit[2]);
+			System.out.println(client.getPlayerName()+ "In choice menu");
 			createBoard(client, size, color);
 		} else if(messagesplit[0].equals(Constants.MOVE)) {
 			handleMove(client, messagesplit);
 		} else if(messagesplit[0].equals(Constants.EXIT)){
-			//TODO			
+			
 		} else {
 			System.out.println(message);
 		}
 	}
-	
+	*/
+	/**
 	public void addHandler(ClientHandler handler) {
 		clients.add(handler);
 		
@@ -97,22 +101,50 @@ public class Server extends Thread {
 	public void removeHandler(ClientHandler handler) {
 		clients.remove(handler);
 	}
-		
-	
-
+	*/
 	public int getPort() {
 		return port;
 	}
 	
-	public void assignToGame(ClientHandler handler) {
+	public void addToGame(Socket sock) {
+		if(gameAvailable == false) {
+			try {	
+			Game game = new Game();
+			gameNumber_games.put(gameNumber, game);
+			ClientHandler client;
+			client = new ClientHandler(game, sock);
+			game.addPlayer(client);
+			client.start();
+			gameAvailable = true;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		
+		} else {
+			try {	
+			ClientHandler client = new ClientHandler(gameNumber_games.get(gameNumber), sock);
+			client.start();
+			gameAvailable = false;
+			gameNumber++;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+	}
+	/**
+	public void assignToGame(ClientHandler client) {
 		
 		if(gameAvailable == true) {
 			while(waitingforConfig) {
 			}
-			addToGame(handler);
+			addToGame(client);
 			} else {
-			handler.sendMessage(Constants.ACKNOWLEDGE_CONFIG+Constants.DELIMITER+gameID+Constants.DELIMITER+true);//TODO overbodig????
-			createNewGame(handler);
+			sendAcknowledgeHandshake(client, gameID, true);
+			createNewGame(client);
 			gameAvailable = true;
 		}
 		
@@ -127,14 +159,18 @@ public class Server extends Thread {
 	public void createBoard(ClientHandler client, int size, int color) {
 		Game game = new Game(size);
 		game.addFirstPlayer(client, color);
-		int id = client_GameID.get(client);
+		client.getName();
+		int id = client_GameID.get(client.getPlayerName());
 		gameID_Game.put(id, game);
 		waitingforConfig = false;
+		System.out.println("WAITNG FOR OP");
 	}
 	
 	public void addToGame(ClientHandler client) {
 		client_GameID.put(client.getPlayerName(), gameID);
 		gameID_Game.get(gameID).addSecondPlayer(client);
+		
+		client.sendMessage(Constants.ACKNOWLEDGE_HANDSHAKE+Constants.DELIMITER+gameID+Constants.DELIMITER+false);//TODO overbodig????
 		client.sendMessage(Constants.ACKNOWLEDGE_CONFIG+
 				Constants.DELIMITER+client.getPlayerName()+
 				Constants.DELIMITER+gameID_Game.get(gameID).getColor(client)+
@@ -142,14 +178,13 @@ public class Server extends Thread {
 				Constants.DELIMITER+gameID_Game.get(gameID).getGameState()+
 				Constants.DELIMITER+gameID_Game.get(gameID).getOpponentColor(client));
 		
-		client.sendMessage(Constants.ACKNOWLEDGE_CONFIG+
-				Constants.DELIMITER+client.getPlayerName()+
-				Constants.DELIMITER+gameID_Game.get(gameID).getColor(client)+
+		ClientHandler opponent = gameID_Game.get(gameID).getOpponent(client);
+		
+		opponent.sendMessage(Constants.ACKNOWLEDGE_CONFIG+
+				Constants.DELIMITER+opponent.getPlayerName()+
+				Constants.DELIMITER+gameID_Game.get(gameID).getColor(opponent)+
 				Constants.DELIMITER+gameID_Game.get(gameID).getSize()+
-				Constants.DELIMITER+gameID_Game.get(gameID).getGameState()+
-				Constants.DELIMITER+gameID_Game.get(gameID).getOpponentColor(client));
-		
-		
+				Constants.DELIMITER+gameID_Game.get(gameID).getGameState());//+
 		gameAvailable = false;
 	}
 	
@@ -159,75 +194,20 @@ public class Server extends Thread {
 		if(game.isTurn(client)) {
 			if(game.isValidMove(move, client)) {
 				game.playMove(move, client);
+				client.sendMessage(Constants.ACKNOWLEDGE_MOVE+Constants.DELIMITER+message[1]+Constants.DELIMITER+move+Constants.DELIMITER+game.getGameState());
+				ClientHandler opponent = game.getOpponent(client);
+				opponent.sendMessage(Constants.ACKNOWLEDGE_MOVE+Constants.DELIMITER+message[1]+Constants.DELIMITER+move+Constants.DELIMITER+game.getGameState());
+			} else {
+				client.sendMessage(Constants.INVALID_MOVE+"not a valid move!");
 			}
+		} else {
+			client.sendMessage(Constants.INVALID_MOVE+"Not your turn!");
 		}
 		//TODO sent confirmation!
 	}
+	
+	public void sendAcknowledgeHandshake(ClientHandler client, int gameid, boolean isleader) {
+		client.sendMessage(Constants.ACKNOWLEDGE_HANDSHAKE+Constants.DELIMITER+gameid+Constants.DELIMITER+isleader);
+	}
+	*/
 }
-
-/**
- * 
- * // /** // // // Server server = new Server(Integer.parseInt(args[0])); //
- * server.run(); // // } // // // private int port; // private
- * List<ClientHandler> threads; // // /** Constructs a new Server object
- */
-//    public Server(int portArg) {
-//        this.port = portArg;
-//        this.threads = new ArrayList<>();
-//    }
-//    
-//    /**
-//     * Listens to a port of this Server if there are any Clients that 
-//     * would like to connect. For every new socket connection a new
-//     * ClientHandler thread is started that takes care of the further
-//     * communication with the Client.
-//     */
-//    public void run() {
-//        try {
-//            ServerSocket serverSocket = new ServerSocket(port);
-//
-//            while (true) {
-//            	System.out.println("Listening!");
-//                Socket sock = serverSocket.accept();
-//                ClientHandler newHandler = new ClientHandler(this, sock);
-//                addHandler(newHandler);
-//                newHandler.start();
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            System.exit(0);
-//        }
-//    }
-//    
-//    public void print(String message){
-//        System.out.println(message);
-//    }
-//    
-//    /**
-//     * Sends a message using the collection of connected ClientHandlers
-//     * to all connected Clients.
-//     * @param msg message that is send
-//     */
-//    public void broadcast(String msg) {
-//        for (int i = 0; i < threads.size(); i++) {
-//            threads.get(i).sendMessage(msg);
-//        }
-//    }
-//    
-//    /**
-//     * Add a ClientHandler to the collection of ClientHandlers.
-//     * @param handler ClientHandler that will be added
-//     */
-//    public void addHandler(ClientHandler handler) {
-//        threads.add(handler);
-//    }
-//    
-//    /**
-//     * Remove a ClientHandler from the collection of ClientHanlders. 
-//     * @param handler ClientHandler that will be removed
-//     */
-//    public void removeHandler(ClientHandler handler) {
-//        threads.remove(handler);
-//    }
-//}
-//*/
