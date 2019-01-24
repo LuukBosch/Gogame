@@ -6,15 +6,17 @@ import java.util.Set;
 public class Score {
 	static final int EMPTY = 10;
 
-	public static void apply(Board board) {
+	public static int apply(Board board, int color) {
 		setEmptytoNumber(board);
 		Board copy1 = board.getDeepcopy();
-		int blackstones = getAmountofStones(copy1, Constants.BLACK);
-		Board copy2 = board.getDeepcopy();
-		int whitestones = getAmountofStones(copy2, Constants.WHITE);
-		removeStones(copy1, Constants.WHITE);
-		removeStones(copy2, Constants.BLACK);
-		System.out.println("black has " + (getScore(copy1)+blackstones)+ " Points, White has " + (getScore(copy2)+whitestones) + " points");
+		int stones = getAmountofStones(copy1, color);
+		if( color == Constants.WHITE) {
+			removeStones(copy1, Constants.BLACK);
+		}else {
+			removeStones(copy1, Constants.WHITE);
+		}
+		
+		return (getScore(copy1)+stones);
 	}
 
 	public static void setEmptytoNumber(Board board) {

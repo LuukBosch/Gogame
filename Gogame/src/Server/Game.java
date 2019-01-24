@@ -8,6 +8,7 @@ import Game.EnforceRule;
 import Game.History;
 import Game.MoveValidator;
 import Game.Player;
+import Game.Score;
 
 public class Game extends Thread {
 	Board board;
@@ -18,6 +19,8 @@ public class Game extends Thread {
 	History history;
 	int passed = 0;
 	boolean configured = false;
+	boolean first = true;
+	boolean secondAssigned = false;
 
 	public Game() {
 		history = new History();
@@ -43,6 +46,14 @@ public class Game extends Thread {
 	public int getColor(ClientHandler player) {
 		return player_Color.get(player);
 	}
+	
+	public ClientHandler getPlayer(int color) {
+		if(getColor(players[0]) == color) {
+			return players[0];
+		} else {
+			return players[1];
+		}
+	}
 
 	public ClientHandler getOpponent(ClientHandler player) {
 		if (player == players[0]) {
@@ -53,6 +64,14 @@ public class Game extends Thread {
 
 	public int getOpponentColor(ClientHandler player) {
 		return getColor(getOpponent(player));
+	}
+	
+	public int getLeftcolor(){
+		if(getColor(players[0]) == Constants.BLACK) {
+			return Constants.WHITE;
+		}else {
+			return Constants.BLACK;
+			}
 	}
 
 	public void setColorPlayer(ClientHandler player, int color) {
@@ -104,27 +123,30 @@ public class Game extends Thread {
 
 	}
 
-	public void HandleIncommingMesg(ClientHandler client, String message) {
+	public void HandleIncommingMesg(ClientHandler player, String message) {
 		System.out.println(message);
+		System.out.println("Player1 is:    "+  players[0]);
+		System.out.println("Player2 is:    "+  players[1]);
 		String[] messagesplit = message.split("\\" + Constants.DELIMITER);
 		if (messagesplit[0].equals(Constants.HANDSHAKE)) {
-			if (players[0] != null || players[1] != null) {
 				String name = messagesplit[1];
-				client.setPlayerName(name);
-				if (players[0] == null) {
-					assignFirstPlayer(client);
-				} else {
-					assignSecondPlayer(client);
+				player.setPlayerName(name);
+				if(first) {
+					assignFirstPlayer(player);
+					first = false;
+				}else {
+					assignSecondPlayer(player);
+					secondAssigned = true;
 				}
-			}
+				
 		} else if (messagesplit[0].equals(Constants.SEND_CONFIG)) {
-			if (configured == false && client.equals(players[0])) {
+			if (configured == false && player.equals(players[0])) {
 				int color = Integer.parseInt(messagesplit[1]);
 				int size = Integer.parseInt(messagesplit[2]);
 				configureGame(color, size);
 			}
 		} else if (messagesplit[0].equals(Constants.MOVE)) {
-			handleMove(client, messagesplit);
+			handleMove(player, messagesplit);
 		} else if (messagesplit[0].equals(Constants.EXIT)) {
 
 		} else {
@@ -160,31 +182,26 @@ public class Game extends Thread {
 				passed = 0;
 				}
 			} else {
-				client.sendMessage(Constants.INVALID_MOVE + "not a valid move!");
+				client.sendMessage(Constants.INVALID_MOVE + Constants.DELIMITER + "not a valid move!");
 			}
 		} else {
-			client.sendMessage(Constants.INVALID_MOVE + "Not your turn!");
+			client.sendMessage(Constants.INVALID_MOVE + Constants.DELIMITER + "Not your turn!");
 		}
-		// TODO sent confirmation!
 	}
 	
 	public void endGame() {
-		players[0].sendMessage("Game over!");
-		players[1].sendMessage("Game over!");
+		sendGameOverMessage();
 	}
 
 	public void assignFirstPlayer(ClientHandler player) {
 		sendAcknowledgeHandshake(player, 1, true);
 		player.sendMessage(Constants.REQUEST_CONFIG + Constants.DELIMITER + Constants.REQUEST_CONFIG_MESSAGE);
-		addFirstPlayer(player);
-
 	}
-
+	
 	public void assignSecondPlayer(ClientHandler player) {
-		addSecondPlayer(player);
 		sendAcknowledgeHandshake(player, 1, false);
 		if (configured == true) {
-			setColorPlayer(players[1], 2); /////// TODO invullen!!!!!!!!!!!!!!!!!!!!
+			setColorPlayer(players[1], getLeftcolor());
 			AcknowledgeConfig();
 		}
 	}
@@ -194,7 +211,28 @@ public class Game extends Thread {
 		setColorPlayer(players[0], color);
 		board = new Board(size);
 		configured = true;
+		if(secondAssigned){
+			System.out.println("nietgoed");
+			setColorPlayer(players[1], getLeftcolor());
+			AcknowledgeConfig();
+		}
 
+	}
+	public void sendGameOverMessage() {
+		int pointsWhite = Score.apply(board, Constants.WHITE);
+		int pointsBlack = Score.apply(board, Constants.BLACK);
+		ClientHandler winner = getWinner(pointsWhite, pointsBlack);
+		for (ClientHandler player : players) {
+			player.sendMessage(status + Constants.DELIMITER + 1 + Constants.DELIMITER + winner.getPlayerName() + Constants.DELIMITER + 1+";"+pointsBlack+";"+2+";"+pointsWhite+"");
+		}
+	}
+	
+	public ClientHandler getWinner(int pointsWhite, int pointsBlack) {
+		if(pointsWhite < pointsBlack) {
+			return getPlayer(Constants.BLACK);
+		} else {
+			return getPlayer(Constants.WHITE);
+		}
 	}
 
 	public void AcknowledgeConfig() {

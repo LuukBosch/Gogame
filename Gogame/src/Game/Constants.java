@@ -15,6 +15,7 @@ public static final String DELIMITER = "+";
 public static final String EXIT = "EXIT"; // checkenn
 public static final String WAITING = "WAITING"; // checkenn
 public static final String PLAYING = "PLAYING";
+public static final String GAME_FINISHED = "GAME_FINISHED";
 public static final String FINISHED = "FINISHED";
 public static final String INVALID_MOVE = "INVALID_MOVE";
 public static final String ACKNOWLEDGE_MOVE = "";

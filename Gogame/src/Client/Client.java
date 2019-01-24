@@ -139,6 +139,9 @@ public class Client extends Thread {
 			}
 		} else if (messagesplit[0].equals(Constants.INVALID_MOVE)) {
 			tui.invalidMove();
+			tui.getMove();
+		} else if (messagesplit[0].equals(Constants.GAME_FINISHED)) {	
+			System.out.println(message);
 		} else {
 			System.out.println(message);
 		}

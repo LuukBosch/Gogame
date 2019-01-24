@@ -21,6 +21,7 @@ public class Server extends Thread {
 	private boolean gameAvailable;
 	private boolean waitingforConfig;
 	private int gameNumber = 0;
+	private Game game;
 
 	public static void main(String args[]) {
 		Server test = new Server();
@@ -109,23 +110,22 @@ public class Server extends Thread {
 	public void addToGame(Socket sock) {
 		if(gameAvailable == false) {
 			try {	
-			Game game = new Game();
+			game = new Game();
 			gameNumber_games.put(gameNumber, game);
-			ClientHandler client;
-			client = new ClientHandler(game, sock);
-			game.addPlayer(client);
-			client.start();
+			ClientHandler clientHandler = new ClientHandler(game, sock);
+			clientHandler.start();
+			game.addFirstPlayer(clientHandler);
+
 			gameAvailable = true;
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
-		
 		} else {
 			try {	
-			ClientHandler client = new ClientHandler(gameNumber_games.get(gameNumber), sock);
-			client.start();
+			ClientHandler clientHandler = new ClientHandler(gameNumber_games.get(gameNumber), sock);
+			clientHandler.start();
+			game.addSecondPlayer(clientHandler);
 			gameAvailable = false;
 			gameNumber++;
 			} catch (IOException e) {

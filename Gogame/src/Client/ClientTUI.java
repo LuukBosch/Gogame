@@ -47,9 +47,7 @@ public class ClientTUI{
 				client.initializeIP(adress);
 			} else if(choice == 3) {
 				String name = readStringWithPrompt("what is your name?");
-				System.out.println("halloooo");
 				client.startGame();
-				System.out.println("2");
 				client.start();
 				client.sendMessage(Constants.HANDSHAKE+Constants.DELIMITER+name);
 				} 
