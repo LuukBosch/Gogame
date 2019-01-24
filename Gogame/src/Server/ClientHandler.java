@@ -66,8 +66,9 @@ public class ClientHandler extends Thread {
             while ((nextLine = this.in.readLine()) != null) {
                 game.HandleIncommingMesg(this, nextLine);
             }
+            shutdown();
         } catch (IOException e) {
-            //game.removeHandler(this);;
+            shutdown();
         }
     }
 
@@ -84,6 +85,7 @@ public class ClientHandler extends Thread {
             out.flush();
   
         } catch (IOException e) {
+        	shutdown();
             e.printStackTrace();
         }
     }
@@ -93,7 +95,15 @@ public class ClientHandler extends Thread {
      * sends a last broadcast to the Server to inform that the Client
      * is no longer participating in the chat. 
      */
-    private void shutdown() {
-        //server.removeHandler(this);
-    }
+	private void shutdown() {
+		try {
+			game.RemovePlayer(this);
+			sock.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			System.exit(0);
+		}
+	}
+
 }

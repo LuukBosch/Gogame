@@ -3,6 +3,7 @@
 	<name>Gogame</name>
 	<comment></comment>
 	<projects>
+		<project>GoGUI</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

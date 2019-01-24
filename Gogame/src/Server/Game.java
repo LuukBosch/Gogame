@@ -21,10 +21,12 @@ public class Game extends Thread {
 	boolean configured = false;
 	boolean first = true;
 	boolean secondAssigned = false;
+	private int gameNumber;
 
 	public Game() {
 		history = new History();
 		player_Color = new HashMap<ClientHandler, Integer>();
+
 	}
 
 	public void addPlayer(ClientHandler player) {
@@ -46,6 +48,9 @@ public class Game extends Thread {
 	public int getColor(ClientHandler player) {
 		return player_Color.get(player);
 	}
+	
+	
+	
 	
 	public ClientHandler getPlayer(int color) {
 		if(getColor(players[0]) == color) {
@@ -116,11 +121,14 @@ public class Game extends Thread {
 		int row = (move - col) / board.getSize();
 		board.setField(row, col, getColor(player));
 		EnforceRule.apply(board, getColor(player));
+		history.addSituation(board.getStringRepresentation());
 		changeTurn();
 	}
 
 	public void RemovePlayer(ClientHandler player) {
-
+		int pointsWhite = Score.apply(board, Constants.WHITE);
+		int pointsBlack = Score.apply(board, Constants.BLACK);
+		getOpponent(player).sendMessage(Constants.GAME_FINISHED+ Constants.DELIMITER + 1 + Constants.DELIMITER + getOpponent(player).getPlayerName() + Constants.DELIMITER + 1+";"+pointsBlack+";"+2+";"+pointsWhite+"Other player left, You wint!!");
 	}
 
 	public void HandleIncommingMesg(ClientHandler player, String message) {
@@ -139,7 +147,7 @@ public class Game extends Thread {
 					secondAssigned = true;
 				}
 				
-		} else if (messagesplit[0].equals(Constants.SEND_CONFIG)) {
+		} else if (messagesplit[0].equals(Constants.SET_CONFIG)) {
 			if (configured == false && player.equals(players[0])) {
 				int color = Integer.parseInt(messagesplit[1]);
 				int size = Integer.parseInt(messagesplit[2]);
@@ -194,12 +202,12 @@ public class Game extends Thread {
 	}
 
 	public void assignFirstPlayer(ClientHandler player) {
-		sendAcknowledgeHandshake(player, 1, true);
+		sendAcknowledgeHandshake(player, 1, 1);
 		player.sendMessage(Constants.REQUEST_CONFIG + Constants.DELIMITER + Constants.REQUEST_CONFIG_MESSAGE);
 	}
 	
 	public void assignSecondPlayer(ClientHandler player) {
-		sendAcknowledgeHandshake(player, 1, false);
+		sendAcknowledgeHandshake(player, 1, 0);
 		if (configured == true) {
 			setColorPlayer(players[1], getLeftcolor());
 			AcknowledgeConfig();
@@ -243,9 +251,9 @@ public class Game extends Thread {
 		}
 	}
 
-	public void sendAcknowledgeHandshake(ClientHandler client, int gameid, boolean isleader) {
+	public void sendAcknowledgeHandshake(ClientHandler client, int gameid, int isLeader) {
 		client.sendMessage(
-				Constants.ACKNOWLEDGE_HANDSHAKE + Constants.DELIMITER + gameid + Constants.DELIMITER + isleader);
+				Constants.ACKNOWLEDGE_HANDSHAKE + Constants.DELIMITER + gameid + Constants.DELIMITER + isLeader);
 	}
 
 }

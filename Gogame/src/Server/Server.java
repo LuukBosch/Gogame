@@ -70,41 +70,12 @@ public class Server extends Thread {
 	}
 	
 	
-	/**
-	public void HandleIncommingMesg(ClientHandler client, String message) {
-		System.out.println(message);
-		String[] messagesplit = message.split("\\" + Constants.DELIMITER);
-		if(messagesplit[0].equals(Constants.HANDSHAKE)) {
-			String name = messagesplit[1];
-			client.setPlayerName(name);
-			assignToGame(client);
-		} else if(messagesplit[0].equals(Constants.SEND_CONFIG)) {
-			System.out.println(message + "  requestconfig");
-			int color = Integer.parseInt(messagesplit[1]);
-			int size = Integer.parseInt(messagesplit[2]);
-			System.out.println(client.getPlayerName()+ "In choice menu");
-			createBoard(client, size, color);
-		} else if(messagesplit[0].equals(Constants.MOVE)) {
-			handleMove(client, messagesplit);
-		} else if(messagesplit[0].equals(Constants.EXIT)){
-			
-		} else {
-			System.out.println(message);
-		}
-	}
-	*/
-	/**
-	public void addHandler(ClientHandler handler) {
-		clients.add(handler);
-		
-	}
-	
-	public void removeHandler(ClientHandler handler) {
-		clients.remove(handler);
-	}
-	*/
 	public int getPort() {
 		return port;
+	}
+	
+	public void removeGame(Game game) {
+		
 	}
 	
 	public void addToGame(Socket sock) {

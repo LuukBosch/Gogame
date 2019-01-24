@@ -63,7 +63,6 @@ public class Game {
         	history.addSituation(board.getStringRepresentation());
     	}
     	}
-    	this.printResult();
     	
         
     }
@@ -81,10 +80,6 @@ public class Game {
         System.out.println(board.toString());
     }
 
-    private void printResult() {
-    	Score.apply(board);
-        System.out.println("einde spel");
-    }
     
     public Player otherPlayer(Player player) {
     	if (player == players[0]) {

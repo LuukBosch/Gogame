@@ -43,11 +43,6 @@ public class Client extends Thread {
 	 * Constructs a Client-object and tries to make a socket connection
 	 */
 	public Client() throws IOException {
-		// sock = new Socket(host, port);
-		// this.in = new BufferedReader(new
-		// InputStreamReader(this.sock.getInputStream()));
-		// this.out = new BufferedWriter(new
-		// OutputStreamWriter(this.sock.getOutputStream()));
 
 	}
 
@@ -79,9 +74,6 @@ public class Client extends Thread {
 		return clientName;
 	}
 
-	public int getGameid() {
-		return gameID;
-	}
 
 	public void initializeIP(String ip) {
 		try {
@@ -115,12 +107,15 @@ public class Client extends Thread {
 			System.out.println("connection lost!");
 		}
 	}
+	public int getGameId() {
+		return gameID;
+	}
 
 	public synchronized void handleMessage(String message) {
 		String[] messagesplit = message.split("\\" + Constants.DELIMITER);
 		if (messagesplit[0].equals(Constants.ACKNOWLEDGE_HANDSHAKE)) {
 			gameID = Integer.parseInt(messagesplit[1]);
-			tui.handShakeAcknowledged(Boolean.valueOf(messagesplit[2]));
+			tui.handShakeAcknowledged(Integer.valueOf(messagesplit[2]));
 		} else if (messagesplit[0].contentEquals(Constants.ACKNOWLEDGE_MOVE)) {
 			String[] gamestatus = messagesplit[3].split(";");
 			String board = gamestatus[2];
@@ -129,7 +124,6 @@ public class Client extends Thread {
 				tui.getMove();
 			}
 		} else if (messagesplit[0].equals(Constants.ACKNOWLEDGE_CONFIG)) {
-			System.out.println(message);
 			color = Integer.parseInt(messagesplit[2]);
 			gogui = new GoGuiIntegrator(false, true, Integer.parseInt(messagesplit[3]));
 			gogui.startGUI();
@@ -148,7 +142,7 @@ public class Client extends Thread {
 	}
 
 	public void drawBoard(String board) {
-		String stones[] = board.split("");
+		String[] stones = board.split("");
 		int size = stones.length;
 		int width = (int) Math.sqrt(size);
 		gogui.clearBoard();
@@ -161,6 +155,21 @@ public class Client extends Thread {
 				gogui.addStone(col, row, true);
 			}
 
+		}
+	}
+	
+	public void printBoard(String[] board) {
+		int size = board.length;
+		int width = (int) Math.sqrt(size);
+		int count = 0;
+		for (int i = 0; i < size; i++) {
+			System.out.print(board[i]);
+			count++;
+			if(count == width) {
+				System.out.println("");
+				count = 0;
+			}
+			
 		}
 	}
 

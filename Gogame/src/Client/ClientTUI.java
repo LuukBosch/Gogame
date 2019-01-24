@@ -12,6 +12,7 @@ import Game.Constants;
 public class ClientTUI{
 		Client client;
 		Scanner in;
+		String playername;
 		
 		ClientTUI(Client client){
 			this.client = client;
@@ -43,22 +44,22 @@ public class ClientTUI{
 				int port = readIntWithPrompt("Enter a port:  ");
 				client.initializePort(port);
 			} else if(choice == 2) {
-				String adress = readStringWithPrompt("Enter a host adress:  ");
+				String adress = readStringWithPrompt("Enter a host adress please:  ");
 				client.initializeIP(adress);
 			} else if(choice == 3) {
-				String name = readStringWithPrompt("what is your name?");
+				playername = readStringWithPrompt("what is your name?");
 				client.startGame();
 				client.start();
-				client.sendMessage(Constants.HANDSHAKE+Constants.DELIMITER+name);
+				client.sendMessage(Constants.HANDSHAKE+Constants.DELIMITER+playername);
 				} 
 		}
 		
-		public void handShakeAcknowledged(boolean isLeader) {
-			if(isLeader) {
+		public void handShakeAcknowledged(int isLeader) {
+			if(isLeader == 1) {
 				System.out.println("You are the leader!");
 				int size = readIntWithPrompt("What is your prefered size:   ");
 				int color = readIntWithPrompt("What is your preferred color:  ");
-				client.sendMessage(Constants.SEND_CONFIG+Constants.DELIMITER+color+Constants.DELIMITER+size);
+				client.sendMessage(Constants.SET_CONFIG+Constants.DELIMITER+color+Constants.DELIMITER+size);
 			} else {
 				System.out.println("you are not the leader");
 			}
@@ -66,7 +67,7 @@ public class ClientTUI{
 		
 		public void getMove() {
 			int move = readIntWithPrompt("what is your next move?");
-			client.sendMessage(Constants.MOVE+Constants.DELIMITER+1+Constants.DELIMITER+client.getPlayerName()+Constants.DELIMITER+move);
+			client.sendMessage(Constants.MOVE+Constants.DELIMITER+client.getGameId()+Constants.DELIMITER+playername+Constants.DELIMITER+move);
 			
 			}
 		public void invalidMove() {
