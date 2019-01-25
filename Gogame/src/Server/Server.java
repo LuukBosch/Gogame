@@ -16,12 +16,10 @@ import Game.Constants;
 public class Server extends Thread {
 	private int port;
 	private HashMap<Integer, Game> gameNumber_games;
-	private HashMap<String, Integer> client_GameID;
-	private HashMap<Integer, Game> gameID_Game;
 	private boolean gameAvailable;
-	private boolean waitingforConfig;
-	private int gameNumber = 0;
+	private int gameid = 0;
 	private Game game;
+	private ServerSocket serverSocket;
 
 	public static void main(String args[]) {
 		Server test = new Server();
@@ -29,44 +27,54 @@ public class Server extends Thread {
 	}
 
 	public Server() {
-		port = initializePort();
-		//clients = new HashSet<ClientHandler>();
-		client_GameID = new HashMap<String, Integer>();
-		gameID_Game = new HashMap<Integer, Game>();
+		initializePort();
+		createPort();
 		gameNumber_games = new HashMap<Integer, Game>();
 		
 	}
 
-	public int initializePort() {
-		int desiredport = 0;
-		try (Scanner in = new Scanner(System.in)) {
-			while (true) {
-				System.out.println("Provide a port number:  ");
-				desiredport = in.nextInt();
-				if (desiredport < 0) {
-					System.out.println("Not a valid port number");
-				} else {
-					return desiredport;
-				}
-			}
-
+    private void initializePort() {
+        int value = 0;
+        boolean intRead = false;
+        Scanner line = new Scanner(System.in);
+        do {
+            System.out.print("Enter port number: ");
+            try (Scanner scannerLine = new Scanner(line.nextLine());) {
+                if (scannerLine.hasNextInt()) {
+                    intRead = true;
+                    value = scannerLine.nextInt();
+                }
+            }
+        } while (!intRead);
+        port = value;
+    }
+    
+    public void createPort() {
+    	try {
+			serverSocket = new ServerSocket(port);
+    	} catch (IOException e) {
+    		System.out.println("Not a valid port, try again");
+    		initializePort();
+    		createPort();
 		}
-
-	}
-
+    	
+    }
 	public void run() {
-		try {
-			ServerSocket serverSocket = new ServerSocket(port);
+		
 			while (true) {
-				System.out.println("Listening!");
-				Socket sock = serverSocket.accept();
-				System.out.println("connected to new Client!");
-				addToGame(sock);
-			}
-		} catch (IOException e) {
-			System.out.println("not a valid port!");
-		}
+				
+				Socket sock;
+				try {
+					System.out.println("Listening!");
+					sock = serverSocket.accept();
+					System.out.println("connected to new Client!");
+					addToGame(sock);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 
+			}
+		
 	}
 	
 	
@@ -74,33 +82,27 @@ public class Server extends Thread {
 		return port;
 	}
 	
-	public void removeGame(Game game) {
-		
-	}
-	
+
 	public void addToGame(Socket sock) {
 		if(gameAvailable == false) {
 			try {	
-			game = new Game();
-			gameNumber_games.put(gameNumber, game);
+			game = new Game(gameid);
+			gameNumber_games.put(gameid, game);
 			ClientHandler clientHandler = new ClientHandler(game, sock);
 			clientHandler.start();
 			game.addFirstPlayer(clientHandler);
-
 			gameAvailable = true;
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		} else {
 			try {	
-			ClientHandler clientHandler = new ClientHandler(gameNumber_games.get(gameNumber), sock);
+			ClientHandler clientHandler = new ClientHandler(gameNumber_games.get(gameid), sock);
 			clientHandler.start();
 			game.addSecondPlayer(clientHandler);
 			gameAvailable = false;
-			gameNumber++;
+			gameid++;
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

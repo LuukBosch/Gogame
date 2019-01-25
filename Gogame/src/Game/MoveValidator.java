@@ -8,7 +8,6 @@ public class MoveValidator {
 		}
 		int col = move % board.getSize();
 		int row = (move - col)/board.getSize();
-		
 		return isEmptyField(board, row, col) && isField(board, row, col) && checkSuperKo(board, history, color, row, col);
 	}
 	

@@ -12,7 +12,10 @@ import java.util.Scanner;
 
 import com.nedap.go.gui.GoGuiIntegrator;
 
+import Game.Board;
 import Game.Constants;
+import Game.EnforceRule;
+import Game.History;
 
 /**
  * Client class for a simple client-server application
@@ -21,34 +24,34 @@ import Game.Constants;
  * @version 2005.02.21
  */
 public class Client extends Thread {
-	private static final String USAGE = "usage: java week7.cmdchat.Client <name> <address> <port>";
+	private int port;
+	private int gameID;
+	private int color;
 	private String clientName;
 	private Socket sock;
 	private BufferedReader in;
 	private BufferedWriter out;
-	private int port;
-	private String name;
 	private InetAddress host;
-	private int gameID;
-	private int color;
 	private GoGuiIntegrator gogui;
-	ClientTUI tui;
+	private ClientTUI tui;
+	private Player player;
+	private History history;
+	private Board bord;
+	private boolean connectionSuccessful;
 
 	public static void main(String args[]) throws IOException {
 		Client client = new Client();
-		client.startTUI();
 	}
 
-	/**
-	 * Constructs a Client-object and tries to make a socket connection
-	 */
-	public Client() throws IOException {
-
-	}
-
-	public void startTUI() {
+	public Client() {
+		history = new History();
 		tui = new ClientTUI(this);
 		tui.start();
+	}
+
+
+	public History getHistory() {
+		return history;
 	}
 
 	public void initializePort(int port) {
@@ -61,8 +64,20 @@ public class Client extends Thread {
 
 	}
 
+	public void createPlayer(int choice) {
+		if (choice == 1) {
+			player = new HumanPlayer();
+		} else {
+			player = new ComputerPlayer();
+		}
+
+	}
+	public Player getPlayer() {
+		return player;
+	}
+
 	public void initializeName(String name) {
-		if (name.length() < 2) {
+		if (name.length() < 1 || name.contains("+")) {
 			System.out.println("not Valid!");
 		} else {
 			this.clientName = name;
@@ -72,6 +87,9 @@ public class Client extends Thread {
 
 	public String getPlayerName() {
 		return clientName;
+	}
+	public Board getBoard() {
+		return bord;
 	}
 
 
@@ -86,14 +104,27 @@ public class Client extends Thread {
 
 	}
 
-	public void startGame() {
+	public void buildSocket() {
 		try {
 			sock = new Socket(host, port);
 			in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			out = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
 			System.out.println("socket build");
+
 		} catch (IOException e) {
 			System.out.println("connection failed!");
+			connectionSuccessful = false;
+
+		}
+	}
+
+	public void startGame() {
+		buildSocket();
+		if(connectionSuccessful) {
+		start();
+		sendMessage(Constants.HANDSHAKE + Constants.DELIMITER + getPlayerName());
+		}else {
+		tui.start();
 		}
 	}
 
@@ -103,36 +134,43 @@ public class Client extends Thread {
 			while ((line = in.readLine()) != null) {
 				handleMessage(line);
 			}
+			shutdown();
 		} catch (IOException e) {
+			shutdown();
 			System.out.println("connection lost!");
 		}
 	}
+	
 	public int getGameId() {
 		return gameID;
 	}
+	public int getColor() {
+		return color;
+	}
 
 	public synchronized void handleMessage(String message) {
+		System.out.println(message);
 		String[] messagesplit = message.split("\\" + Constants.DELIMITER);
 		if (messagesplit[0].equals(Constants.ACKNOWLEDGE_HANDSHAKE)) {
 			gameID = Integer.parseInt(messagesplit[1]);
 			tui.handShakeAcknowledged(Integer.valueOf(messagesplit[2]));
 		} else if (messagesplit[0].contentEquals(Constants.ACKNOWLEDGE_MOVE)) {
-			String[] gamestatus = messagesplit[3].split(";");
-			String board = gamestatus[2];
-			drawBoard(board);;
-			if(Integer.valueOf(gamestatus[1]) == color) {
+			addToHistory(messagesplit);
+			playOwnBoard(messagesplit);
+			drawBoard(messagesplit);
+
+			if(Integer.valueOf(messagesplit[3].split(";")[1]) == color) {
 				tui.getMove();
 			}
 		} else if (messagesplit[0].equals(Constants.ACKNOWLEDGE_CONFIG)) {
-			color = Integer.parseInt(messagesplit[2]);
-			gogui = new GoGuiIntegrator(false, true, Integer.parseInt(messagesplit[3]));
-			gogui.startGUI();
-			String[] gamestatus = messagesplit[4].split(";");
-			if(Integer.valueOf(gamestatus[1])==color) {
+			acknowledgeConfig(messagesplit);
+			startGui(messagesplit);
+			createBoard(messagesplit);
+			if(Integer.valueOf(messagesplit[4].split(";")[1])==color) {
 				tui.getMove();
 			}
 		} else if (messagesplit[0].equals(Constants.INVALID_MOVE)) {
-			tui.invalidMove();
+			tui.invalidMove(messagesplit);
 			tui.getMove();
 		} else if (messagesplit[0].equals(Constants.GAME_FINISHED)) {	
 			System.out.println(message);
@@ -140,8 +178,44 @@ public class Client extends Thread {
 			System.out.println(message);
 		}
 	}
+	public void acknowledgeConfig(String[] message){
+		color = Integer.parseInt(message[2]);
+		
+	}
+	public void createBoard(String[] message) {
+		bord = new Board(Integer.valueOf(message[3]));
+		String[] gamestatus = message[4].split(";");
+		String board = gamestatus[2];
+		history.addSituation(board);
+	}
+	
+	public void startGui(String[] message) {
+		gogui = new GoGuiIntegrator(false, true, Integer.parseInt(message[3]));
+		gogui.startGUI();
+	}
 
-	public void drawBoard(String board) {
+	
+	public void addToHistory(String[] message){
+		String[] gamestatus = message[3].split(";");
+		String board = gamestatus[2];
+		history.addSituation(board);
+	}
+
+	public void playOwnBoard(String[] message) {
+		String movestring = message[2];
+		int move = Integer.valueOf(movestring.split(";")[0]);
+		int color = Integer.valueOf(movestring.split(";")[1]);
+		if(move != -1) {
+		int col = move % bord.getSize();
+		int row = (move - col)/bord.getSize();
+		bord.setField(row, col, color);
+		EnforceRule.apply(bord, color);
+		}
+		
+	}
+	public void drawBoard(String[] message) {
+		String[] gamestatus = message[3].split(";");
+		String board = gamestatus[2];
 		String[] stones = board.split("");
 		int size = stones.length;
 		int width = (int) Math.sqrt(size);
@@ -182,5 +256,16 @@ public class Client extends Thread {
 			e.printStackTrace();
 		}
 	}
+	private void shutdown() {
+		try {
+			sock.close();
+			System.out.println("Connection with server lost!");
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			System.exit(0);
+		}
+	}
 
 }
+

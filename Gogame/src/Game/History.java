@@ -18,5 +18,9 @@ public class History {
 		return history;
 	}
 	
+	public int getSize() {
+		return history.get(0).length();
+	}
+	
 
 }

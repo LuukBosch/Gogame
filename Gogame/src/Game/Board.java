@@ -9,41 +9,6 @@ public class Board {
 
 	Intersection[][] stones;
 	int size;
-	public static void main(String args[]) {
-		Board bord = new Board(9);
-		System.out.println(bord.toString());
-		bord.setField(3, 3, 1);
-		bord.setField(3, 4, 1);
-		bord.setField(3, 5, 2);
-		bord.setField(4, 3, 2);
-		bord.setField(4, 3, 1);
-		bord.setField(4, 4, 2);
-		bord.setField(4, 5, 2);
-		bord.setField(4, 6, 2);
-		bord.setField(4, 7, 2);
-		bord.setField(4, 8, 2);
-		bord.setField(8, 8, 1);
-		
-	
-		System.out.println(bord.toString());
-		System.out.println(bord.toString());
-	
-		Set<Intersection> test = bord.getField(4, 3).getGroup().getLiberties();
-		Set<Intersection> test2 = new HashSet<Intersection>();
-		for(Intersection S: test) {
-			test2.add(S);
-		}
-		for(Intersection R: test2) {
-			bord.setField(R.getRow(), R.getCol(), 1);
-			
-		}
-		System.out.println(bord.toString());
-		//EnforceRule.apply(bord, 2);
-		System.out.println(bord.toString());
-		
-	
-		
-	}	
 
 	public Board(int size) {
 		stones = new Intersection[size][size];
@@ -87,7 +52,6 @@ public class Board {
 	}
 
 	
-	//overbodig?
 	public boolean isField(Intersection intersection) {
 		int col = intersection.getCol();
 		int row = intersection.getRow();
@@ -137,9 +101,9 @@ public class Board {
 				if (stones[i][j].getGroup() == null){
 					bordstringrep +="0";
 				}
-				else if(stones[i][j].getGroup().getColor() == 1){
+				else if(stones[i][j].getGroup().getColor() == Constants.BLACK){
 					bordstringrep +="1";
-				}else if(stones[i][j].getGroup().getColor() == 2){
+				}else if(stones[i][j].getGroup().getColor() == Constants.WHITE){
 					bordstringrep +="2";
 			}
 		}
@@ -165,10 +129,10 @@ public class Board {
 		if(stone.getGroup() == null) {
 			return("Empty");
 		}else if(stone.getGroup().getColor() == 1) {
-			return("  0  ");
+			return("  1  ");
 			
 		}else if(stone.getGroup().getColor() == 2) {
-			return("  1  ");
+			return("  2  ");
 		}else {
 			return null;
 		}
