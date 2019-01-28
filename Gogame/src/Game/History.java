@@ -17,6 +17,7 @@ public class History {
 	public List<String> getHistory() {
 		return history;
 	}
+
 	
 	public int getSize() {
 		return history.get(0).length();

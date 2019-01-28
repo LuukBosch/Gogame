@@ -4,7 +4,7 @@ import com.nedap.go.gui.GoGuiIntegrator;
 
 public class EnforceRule {
 
-	public static void apply(Board board, int color) {
+	public static void enforceRules(Board board, int color) {
 		int colorcur = 0;
 		int colorop = 0;
 		if (color == 1) {

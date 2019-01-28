@@ -16,6 +16,7 @@ import Game.Board;
 import Game.Constants;
 import Game.EnforceRule;
 import Game.History;
+import static Game.EnforceRule.enforceRules;
 
 /**
  * Client class for a simple client-server application
@@ -35,9 +36,10 @@ public class Client extends Thread {
 	private GoGuiIntegrator gogui;
 	private ClientTUI tui;
 	private Player player;
+	private Player hintPlayer;
 	private History history;
 	private Board bord;
-	private boolean connectionSuccessful;
+	private boolean connectionSuccessful = true;
 
 	public static void main(String args[]) throws IOException {
 		Client client = new Client();
@@ -49,7 +51,6 @@ public class Client extends Thread {
 		tui.start();
 	}
 
-
 	public History getHistory() {
 		return history;
 	}
@@ -60,6 +61,7 @@ public class Client extends Thread {
 		} else {
 			this.port = port;
 			System.out.println("Port is:  " + port);
+			tui.portset();
 		}
 
 	}
@@ -72,6 +74,7 @@ public class Client extends Thread {
 		}
 
 	}
+
 	public Player getPlayer() {
 		return player;
 	}
@@ -88,15 +91,16 @@ public class Client extends Thread {
 	public String getPlayerName() {
 		return clientName;
 	}
+
 	public Board getBoard() {
 		return bord;
 	}
-
 
 	public void initializeIP(String ip) {
 		try {
 			host = InetAddress.getByName(ip);
 			System.out.println("Adress is:  " + host.toString());
+			tui.ipSet();
 		} catch (UnknownHostException e) {
 			System.out.println("ERROR: no valid hostname!");
 
@@ -114,17 +118,18 @@ public class Client extends Thread {
 		} catch (IOException e) {
 			System.out.println("connection failed!");
 			connectionSuccessful = false;
+			tui.start();
 
 		}
 	}
 
 	public void startGame() {
+
 		buildSocket();
-		if(connectionSuccessful) {
-		start();
-		sendMessage(Constants.HANDSHAKE + Constants.DELIMITER + getPlayerName());
-		}else {
-		tui.start();
+
+		if (connectionSuccessful) {
+			this.start();
+			sendMessage(Constants.HANDSHAKE + Constants.DELIMITER + getPlayerName());
 		}
 	}
 
@@ -140,62 +145,95 @@ public class Client extends Thread {
 			System.out.println("connection lost!");
 		}
 	}
-	
+
 	public int getGameId() {
 		return gameID;
 	}
+
 	public int getColor() {
 		return color;
 	}
 
 	public synchronized void handleMessage(String message) {
 		System.out.println(message);
-		String[] messagesplit = message.split("\\" + Constants.DELIMITER);
-		if (messagesplit[0].equals(Constants.ACKNOWLEDGE_HANDSHAKE)) {
-			gameID = Integer.parseInt(messagesplit[1]);
-			tui.handShakeAcknowledged(Integer.valueOf(messagesplit[2]));
-		} else if (messagesplit[0].contentEquals(Constants.ACKNOWLEDGE_MOVE)) {
-			addToHistory(messagesplit);
-			playOwnBoard(messagesplit);
-			drawBoard(messagesplit);
-
-			if(Integer.valueOf(messagesplit[3].split(";")[1]) == color) {
+		try {
+			String[] messagesplit = message.split("\\" + Constants.DELIMITER);
+			if (messagesplit[0].equals(Constants.ACKNOWLEDGE_HANDSHAKE)) {
+				gameID = Integer.parseInt(messagesplit[1]);
+				tui.handShakeAcknowledged(Integer.valueOf(messagesplit[2]));
+			} else if (messagesplit[0].contentEquals(Constants.ACKNOWLEDGE_MOVE)) {
+				System.out.println(message);
+				addToHistory(messagesplit);
+				playOwnBoard(messagesplit);
+				drawBoard(messagesplit);
+				gogui.removeHintIdicator();
+				if (Integer.valueOf(messagesplit[3].split(";")[1]) == color) {
+					tui.getMove();
+				}
+			} else if (messagesplit[0].equals(Constants.ACKNOWLEDGE_CONFIG)) {
+				acknowledgeConfig(messagesplit);
+				startGui(messagesplit);
+				createBoard(messagesplit);
+				tui.acknowledgeConfig();
+				if (Integer.valueOf(messagesplit[4].split(";")[1]) == color) {
+					tui.getMove();
+				}
+			} else if (messagesplit[0].equals(Constants.INVALID_MOVE)) {
+				tui.invalidMove(messagesplit);
 				tui.getMove();
+			} else if (messagesplit[0].equals(Constants.GAME_FINISHED)) {
+				System.out.println(message);
+				gogui.clearBoard();
+			} else if (messagesplit[0].equals(Constants.REQUEST_REMATCH)) {
+				tui.askRematch();
+			} else if (messagesplit[0].equals(Constants.ACKNOWLEDGE_REMATCH)) {
+				rematch(messagesplit[1]);
+			} else {
+				System.out.println(message);
 			}
-		} else if (messagesplit[0].equals(Constants.ACKNOWLEDGE_CONFIG)) {
-			acknowledgeConfig(messagesplit);
-			startGui(messagesplit);
-			createBoard(messagesplit);
-			if(Integer.valueOf(messagesplit[4].split(";")[1])==color) {
-				tui.getMove();
-			}
-		} else if (messagesplit[0].equals(Constants.INVALID_MOVE)) {
-			tui.invalidMove(messagesplit);
-			tui.getMove();
-		} else if (messagesplit[0].equals(Constants.GAME_FINISHED)) {	
-			System.out.println(message);
-		} else {
-			System.out.println(message);
+		} catch (NumberFormatException e) {
+			System.out.println("Incomming message is not in the right format");
+			tui.start2();
 		}
 	}
-	public void acknowledgeConfig(String[] message){
+
+	public void acknowledgeConfig(String[] message) {
 		color = Integer.parseInt(message[2]);
-		
+
 	}
+
 	public void createBoard(String[] message) {
 		bord = new Board(Integer.valueOf(message[3]));
 		String[] gamestatus = message[4].split(";");
 		String board = gamestatus[2];
 		history.addSituation(board);
 	}
-	
+
+	public void rematch(String choice) {
+		if (choice.contentEquals("1")) {
+			if (color == 1) {
+				tui.start2();
+			}
+		} else {
+			shutdown();
+		}
+	}
+
 	public void startGui(String[] message) {
 		gogui = new GoGuiIntegrator(false, true, Integer.parseInt(message[3]));
 		gogui.startGUI();
 	}
 
-	
-	public void addToHistory(String[] message){
+	public void setHint() {
+		hintPlayer = new ComputerPlayer();
+		int hint = hintPlayer.determineMove(getBoard(), getHistory(), getColor());
+		int col = hint % bord.getSize();
+		int row = (hint - col) / bord.getSize();
+		gogui.addHintIndicator(col, row);
+
+	}
+
+	public void addToHistory(String[] message) {
 		String[] gamestatus = message[3].split(";");
 		String board = gamestatus[2];
 		history.addSituation(board);
@@ -205,14 +243,15 @@ public class Client extends Thread {
 		String movestring = message[2];
 		int move = Integer.valueOf(movestring.split(";")[0]);
 		int color = Integer.valueOf(movestring.split(";")[1]);
-		if(move != -1) {
-		int col = move % bord.getSize();
-		int row = (move - col)/bord.getSize();
-		bord.setField(row, col, color);
-		EnforceRule.apply(bord, color);
+		if (move != -1) {
+			int col = move % bord.getSize();
+			int row = (move - col) / bord.getSize();
+			bord.setField(row, col, color);
+			enforceRules(bord, color);
 		}
-		
+
 	}
+
 	public void drawBoard(String[] message) {
 		String[] gamestatus = message[3].split(";");
 		String board = gamestatus[2];
@@ -231,7 +270,7 @@ public class Client extends Thread {
 
 		}
 	}
-	
+
 	public void printBoard(String[] board) {
 		int size = board.length;
 		int width = (int) Math.sqrt(size);
@@ -239,11 +278,11 @@ public class Client extends Thread {
 		for (int i = 0; i < size; i++) {
 			System.out.print(board[i]);
 			count++;
-			if(count == width) {
+			if (count == width) {
 				System.out.println("");
 				count = 0;
 			}
-			
+
 		}
 	}
 
@@ -256,6 +295,7 @@ public class Client extends Thread {
 			e.printStackTrace();
 		}
 	}
+
 	private void shutdown() {
 		try {
 			sock.close();
@@ -268,4 +308,3 @@ public class Client extends Thread {
 	}
 
 }
-

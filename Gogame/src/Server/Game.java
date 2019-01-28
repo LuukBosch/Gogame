@@ -4,16 +4,17 @@ import java.util.HashMap;
 
 import Game.Board;
 import Game.Constants;
-import Game.EnforceRule;
 import Game.History;
 import Game.MoveValidator;
-import Game.Score;
+import static Game.EnforceRule.enforceRules;
+import static Game.Score.getScore;
+
 
 public class Game {
 	Board board;
 	ClientHandler[] players = new ClientHandler[2];
 	HashMap<ClientHandler, Integer> player_Color;
-	String status = Constants.WAITING;
+	String status = Constants.PLAYING;
 	int turn = Constants.BLACK;
 	History history;
 	int passed = 0;
@@ -21,6 +22,8 @@ public class Game {
 	boolean configured = false;
 	boolean firstAssigned = false;
 	boolean secondAssigned = false;
+	boolean rematch = false;
+	int rematchcount = 0;
 
 	public Game(int gameid) {
 		history = new History();
@@ -96,7 +99,7 @@ public class Game {
 	public int getTurn() {
 		return turn;
 	}
-	
+
 	public int getPrevTurn() {
 		if (turn == Constants.BLACK) {
 			return Constants.WHITE;
@@ -124,14 +127,14 @@ public class Game {
 		int col = move % board.getSize();
 		int row = (move - col) / board.getSize();
 		board.setField(row, col, getColor(player));
-		EnforceRule.apply(board, getColor(player));
+		enforceRules(board, getColor(player));
 		history.addSituation(board.getStringRepresentation());
 		changeTurn();
 	}
 
-	public void RemovePlayer(ClientHandler player) {
-		int pointsWhite = Score.apply(board, Constants.WHITE);
-		int pointsBlack = Score.apply(board, Constants.BLACK);
+	public void removePlayer(ClientHandler player) {
+		int pointsWhite = getScore(board, Constants.WHITE);
+		int pointsBlack = getScore(board, Constants.BLACK);
 		getOpponent(player).sendMessage(Constants.GAME_FINISHED + Constants.DELIMITER + 1 + Constants.DELIMITER
 				+ getOpponent(player).getPlayerName() + Constants.DELIMITER + 1 + ";" + pointsBlack + ";" + 2 + ";"
 				+ pointsWhite + "Other player left, You wint!!");
@@ -155,6 +158,9 @@ public class Game {
 		} else if (messagesplit[0].equals(Constants.MOVE)) {
 			handleMove(player, messagesplit);
 		} else if (messagesplit[0].equals(Constants.EXIT)) {
+			removePlayer(player);
+		} else if(messagesplit[0].equals(Constants.SET_REMATCH)) {
+			setRematch(messagesplit[1]);
 
 		} else {
 			System.out.println(message);
@@ -170,7 +176,6 @@ public class Game {
 					passed++;
 					System.out.println(passed);
 					if (passed == 2) {
-						System.out.println("Game finished!");
 						finish();
 						endGame();
 					}
@@ -183,6 +188,7 @@ public class Game {
 					playMove(move, player);
 					sendAcknowledgeMove(player, move);
 					sendAcknowledgeMove(opponent, move);
+					System.out.println(board.toString());
 					passed = 0;
 				}
 			} else {
@@ -195,6 +201,24 @@ public class Game {
 
 	public void endGame() {
 		sendGameOverMessage();
+		sendNewGameRequest();
+	}
+	public void setRematch(String choice) {
+		rematchcount++;
+		if(choice.equals("1")) {
+			rematch = true;
+			System.out.println(true);
+		} else {
+			rematch = false;
+		}
+		if (rematchcount == 2) {
+			if (rematch) {
+				sendAcknowledgeRematch(1);
+				resetGame();
+			}else {
+			sendAcknowledgeRematch(0);
+			}
+		}
 	}
 
 	public ClientHandler getWinner(int pointsWhite, int pointsBlack) {
@@ -213,6 +237,7 @@ public class Game {
 		setPlayerName(player, message[1]);
 		sendAcknowledgeHandshake(player, gameid, 1);
 		player.sendMessage(Constants.REQUEST_CONFIG + Constants.DELIMITER + Constants.REQUEST_CONFIG_MESSAGE);
+		System.out.println(Constants.REQUEST_CONFIG + Constants.DELIMITER + Constants.REQUEST_CONFIG_MESSAGE);
 	}
 
 	public void assignSecondPlayer(ClientHandler player, String[] message) {
@@ -220,31 +245,55 @@ public class Game {
 		sendAcknowledgeHandshake(player, gameid, 0);
 		if (configured == true) {
 			setColorPlayer(players[1], getLeftcolor());
+			System.out.println("Sendacknowledgeconfig");
 			sendAcknowledgeConfig();
 		}
 	}
+	public void resetGame() {
+		board = new Board(board.getSize());
+		history = new History();
+		turn = Constants.BLACK;
+	}
 
 	public void configureGame(String[] message) {
-		int color = Integer.parseInt(message[1]);
-		int size = Integer.parseInt(message[2]);
+		int color = Integer.parseInt(message[2]);
+		int size = Integer.parseInt(message[3]);
+		System.out.println("color is:" + color);
+		System.out.println("size is: " + size);
 		setColorPlayer(players[0], color);
 		board = new Board(size);
+		System.out.println(board.toString());
 		configured = true;
 		if (secondAssigned) {
 			setColorPlayer(players[1], getLeftcolor());
+			System.out.println("Sendacknowledgeconfig");
 			sendAcknowledgeConfig();
 		}
 
 	}
 
 	public void sendGameOverMessage() {
-		int pointsWhite = Score.apply(board, Constants.WHITE);
-		int pointsBlack = Score.apply(board, Constants.BLACK);
+		int pointsWhite = getScore(board, Constants.WHITE);
+		int pointsBlack = getScore(board, Constants.BLACK);
 		ClientHandler winner = getWinner(pointsWhite, pointsBlack);
 		for (ClientHandler player : players) {
 			player.sendMessage(Constants.GAME_FINISHED + Constants.DELIMITER + 1 + Constants.DELIMITER + winner.getPlayerName()
 					+ Constants.DELIMITER + 1 + ";" + pointsBlack + ";" + 2 + ";" + pointsWhite + "");
 		}
+	}
+	
+	public void sendNewGameRequest() {
+		for (ClientHandler player : players) {
+			player.sendMessage(Constants.REQUEST_REMATCH);
+		}
+		
+	}
+	
+	public void sendAcknowledgeRematch(int choice) {
+		for (ClientHandler player : players) {
+			player.sendMessage(Constants.ACKNOWLEDGE_REMATCH + Constants.DELIMITER + choice);
+		}
+		
 	}
 
 	public void sendAcknowledgeMove(ClientHandler player, int move) {
@@ -266,5 +315,7 @@ public class Game {
 		client.sendMessage(
 				Constants.ACKNOWLEDGE_HANDSHAKE + Constants.DELIMITER + gameid + Constants.DELIMITER + isLeader);
 	}
+	
+
 
 }

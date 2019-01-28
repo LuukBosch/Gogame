@@ -22,13 +22,13 @@ public class NaiveStrategy implements Strategy{
 			e.printStackTrace();
 		}
 		ArrayList<Integer> possiblemoves = new ArrayList<Integer>();
-		for(int i = 0; i < history.getSize(); i++) {
-			if(MoveValidator.isValidMove(board, i, color, history)) {
+		for (int i = 0; i < history.getSize(); i++) {
+			if (MoveValidator.isValidMove(board, i, color, history)) {
 				possiblemoves.add(i);
 			}
 		}
 		Random rand = new Random();
-		if(possiblemoves.size() == 0) {
+		if (possiblemoves.size() == 0) {
 			return -1;
 		}
 		System.out.println(board.toString());

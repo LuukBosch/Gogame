@@ -6,7 +6,7 @@ import java.util.Set;
 public class Score {
 	static final int EMPTY = 10;
 
-	public static int apply(Board board, int color) {
+	public static int getScore(Board board, int color) {
 		setEmptytoNumber(board);
 		Board copy1 = board.getDeepcopy();
 		int stones = getAmountofStones(copy1, color);

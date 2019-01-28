@@ -41,7 +41,6 @@ public class ClientHandler extends Thread {
     	return playername;
     }
 
-
     public void run() {
         String nextLine;
         try {
@@ -70,7 +69,7 @@ public class ClientHandler extends Thread {
 
 	private void shutdown() {
 		try {
-			game.RemovePlayer(this);
+			game.removePlayer(this);
 			sock.close();
 		} catch (IOException e) {
 			e.printStackTrace();

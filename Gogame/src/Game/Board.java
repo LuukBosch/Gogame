@@ -19,6 +19,9 @@ public class Board {
 	public Board() {
 		this(9);
 	}
+	public Intersection[][] getBoard(){
+	return stones;
+	}
 	
 
 	public void createBoard() {
