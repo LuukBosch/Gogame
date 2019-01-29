@@ -40,7 +40,8 @@ public class ClientHandler extends Thread {
     public String getPlayerName() {
     	return playername;
     }
-
+    
+    
     public void run() {
         String nextLine;
         try {

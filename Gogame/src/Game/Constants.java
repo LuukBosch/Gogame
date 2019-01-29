@@ -1,6 +1,11 @@
 package Game;
-
+/**
+ * Contains the constants present in the protocol. 
+ * @author luuk.bosch
+ *
+ */
 public class Constants {
+	
 public static final int EMPTY = 0;
 public static final int BLACK = 1;
 public static final int WHITE = 2;
@@ -24,6 +29,5 @@ public static final String ACKNOWLEDGE_MOVE = "ACKNOWLEDGE_MOVE";
 public static final String REQUEST_REMATCH = "REQUEST_REMATCH";
 public static final String SET_REMATCH = "SET_REMATCH";
 public static final String ACKNOWLEDGE_REMATCH = "AKNOWLEDGE_REMATCH";
-
 
 }

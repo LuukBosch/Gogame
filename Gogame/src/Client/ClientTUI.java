@@ -14,6 +14,7 @@ public class ClientTUI {
 	String playername;
 	boolean portcheck = false, adresscheck = false, playercheck = false, leader, configNotSet = true, turn = false;
 	int port;
+	int playerChoice;
 	String adress;
 	String player = "Computerplayer";
 	
@@ -63,9 +64,18 @@ public class ClientTUI {
 		
 		checklist();
 	}
-	
+
 	public void displayMenu2() {
 		System.out.println();
+		System.out.println("███╗   ███╗███████╗███╗   ██╗██╗   ██╗");
+		System.out.println("████╗ ████║██╔════╝████╗  ██║██║   ██║");
+	    System.out.println("██╔████╔██║█████╗  ██╔██╗ ██║██║   ██║");
+	    System.out.println("██║╚██╔╝██║██╔══╝  ██║╚██╗██║██║   ██║");
+	    System.out.println("██║ ╚═╝ ██║███████╗██║ ╚████║╚██████╔╝");		
+	    System.out.println("╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝ ╚═════╝ ");
+				                                      
+				                         
+		                        
 		System.out.println("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓");
 		if(leader && configNotSet) {
 		System.out.println("▐  Set Game Configuration ............1 ▍");
@@ -93,15 +103,11 @@ public class ClientTUI {
 		} else {
 			System.out.println("\u274C");
 		}
-		if(!configNotSet) {
-		System.out.print("  Board size:  ");
-		System.out.println(client.getBoard().getSize());
 		System.out.print("  Color:      ");
 		if (client.getColor() == Constants.BLACK) {
 		System.out.println("⚫");
 		} else {
 		System.out.println("⚪");
-		}
 		}
 		System.out.println("┗━━━━━━━━━━━━━━━━┛");
 	}
@@ -114,8 +120,8 @@ public class ClientTUI {
 			adress = readStringWithPrompt("Enter host Adress:  ");
 			client.initializeIP(adress);
 		} else if (choice == 3) {
-			int keuze = 1;
-			client.createPlayer(keuze);
+			playerChoice = readIntWithPrompt("Do you want to play with Computer(0) or Human (1)");
+			client.createPlayer(playerChoice);
 			playercheck = true;
 		} else if (choice == 4) {
 			if (playercheck && adresscheck && portcheck) {
@@ -160,8 +166,8 @@ public class ClientTUI {
 	}
 
 	public void sendConfig() {
-		int color = readIntWithPrompt("Enter desired color(Black = 1, White = 2)");
-		int size = readIntWithPrompt("Enter desired size of board");
+		int color = readIntWithPrompt("Enter desired color(Black = 1, White = 2):  ");
+		int size = readIntWithPrompt("Enter desired size of board:  ");
 		client.sendMessage(Constants.SET_CONFIG + Constants.DELIMITER + client.getGameId()+ Constants.DELIMITER + color + Constants.DELIMITER + size);
 		configNotSet = false;
 	}
@@ -190,8 +196,13 @@ public class ClientTUI {
 	}
 	public void getMove() {
 		System.out.println("you have the move!");
+		if(playerChoice == 1) {
 		turn = true;
 		start2();
+		}
+		else {
+			setMove();
+		}
 	}
 	public void askRematch() {
 		int choice = readIntWithPrompt("Do you want to play a rematch?(1 = yes, 0 = no)");

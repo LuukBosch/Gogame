@@ -31,10 +31,6 @@ public class NaiveStrategy implements Strategy{
 		if (possiblemoves.size() == 0) {
 			return -1;
 		}
-		System.out.println(board.toString());
-		System.out.println("----------------------------------");
-		System.out.println(possiblemoves.toString());
 		return possiblemoves.get(rand.nextInt(possiblemoves.size()));
 	}
-
 }

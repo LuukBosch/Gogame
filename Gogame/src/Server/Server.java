@@ -3,21 +3,25 @@ package Server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Scanner;
-import java.util.Vector;
+/**
+ * The Threaded class server is responsible for accepting clients 
+ * and assigning these clients to a specific game. The amount of players in
+ * a game is always two. 
+ * @author luuk.bosch
+ *
+ */
 
-import Game.Board;
-import Game.Constants;
 
 public class Server extends Thread {
+	/**
+	 * 
+	 */
 	private int port;
+	private int gameid = 0;
 	private HashMap<Integer, Game> gameNumber_games;
 	private boolean gameAvailable;
-	private int gameid = 0;
 	private Game game;
 	private ServerSocket serverSocket;
 
@@ -25,14 +29,24 @@ public class Server extends Thread {
 		Server test = new Server();
 		test.start();
 	}
-
+	
+	/**
+	 * For the creation of the server a port number is asked to the user;
+	 * If a port number is given a server socket is created. 
+	 */
 	public Server() {
 		initializePort();
 		createPort();
 		gameNumber_games = new HashMap<Integer, Game>();
 
 	}
-
+	
+	public int getPort() {
+		return port;
+	}
+	/**
+	 * Ask the user for a port number. Stops if a valid int is given. 
+	 */
 	private void initializePort() {
 		int value = 0;
 		boolean intRead = false;
@@ -49,6 +63,10 @@ public class Server extends Thread {
 		port = value;
 	}
 
+	/**
+	 * Tries to Create a server socket using the port given by the user. 
+	 * If this fails a new port is asked and a other attempt is made until it succeeds.  
+	 */
 	public void createPort() {
 		try {
 			serverSocket = new ServerSocket(port);
@@ -60,6 +78,9 @@ public class Server extends Thread {
 
 	}
 
+	/**
+	 * Creates sockets for incoming clients. 
+	 */
 	public void run() {
 
 		while (true) {
@@ -76,10 +97,11 @@ public class Server extends Thread {
 		}
 	}
 
-	public int getPort() {
-		return port;
-	}
-
+	/**
+	 * Adds the incomming clients to a game. If no game is available a new instance of Game is created. 
+	 * Games are given a GameId and are stored in a list
+	 * @param sock
+	 */
 	public void addToGame(Socket sock) {
 		if (gameAvailable == false) {
 			try {

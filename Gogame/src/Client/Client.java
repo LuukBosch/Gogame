@@ -25,9 +25,11 @@ import static Game.EnforceRule.enforceRules;
  * @version 2005.02.21
  */
 public class Client extends Thread {
+	
 	private int port;
 	private int gameID;
 	private int color;
+	
 	private String clientName;
 	private Socket sock;
 	private BufferedReader in;
@@ -42,7 +44,7 @@ public class Client extends Thread {
 	private boolean connectionSuccessful = true;
 
 	public static void main(String args[]) throws IOException {
-		Client client = new Client();
+		new Client();
 	}
 
 	public Client() {
@@ -54,7 +56,9 @@ public class Client extends Thread {
 	public History getHistory() {
 		return history;
 	}
+	
 
+	                        
 	public void initializePort(int port) {
 		if (port < 0) {
 			System.out.println("not valid!");
@@ -153,7 +157,8 @@ public class Client extends Thread {
 	public int getColor() {
 		return color;
 	}
-
+	
+	
 	public synchronized void handleMessage(String message) {
 		System.out.println(message);
 		try {
@@ -162,7 +167,6 @@ public class Client extends Thread {
 				gameID = Integer.parseInt(messagesplit[1]);
 				tui.handShakeAcknowledged(Integer.valueOf(messagesplit[2]));
 			} else if (messagesplit[0].contentEquals(Constants.ACKNOWLEDGE_MOVE)) {
-				System.out.println(message);
 				addToHistory(messagesplit);
 				playOwnBoard(messagesplit);
 				drawBoard(messagesplit);
@@ -182,14 +186,13 @@ public class Client extends Thread {
 				tui.invalidMove(messagesplit);
 				tui.getMove();
 			} else if (messagesplit[0].equals(Constants.GAME_FINISHED)) {
-				System.out.println(message);
-				gogui.clearBoard();
+				gogui.stopGUI();
 			} else if (messagesplit[0].equals(Constants.REQUEST_REMATCH)) {
 				tui.askRematch();
 			} else if (messagesplit[0].equals(Constants.ACKNOWLEDGE_REMATCH)) {
 				rematch(messagesplit[1]);
 			} else {
-				System.out.println(message);
+				System.out.println(message + " is unknown");
 			}
 		} catch (NumberFormatException e) {
 			System.out.println("Incomming message is not in the right format");
@@ -211,9 +214,6 @@ public class Client extends Thread {
 
 	public void rematch(String choice) {
 		if (choice.contentEquals("1")) {
-			if (color == 1) {
-				tui.start2();
-			}
 		} else {
 			shutdown();
 		}
@@ -276,16 +276,15 @@ public class Client extends Thread {
 		int width = (int) Math.sqrt(size);
 		int count = 0;
 		for (int i = 0; i < size; i++) {
-			System.out.print(board[i]);
 			count++;
 			if (count == width) {
 				System.out.println("");
 				count = 0;
 			}
-
 		}
 	}
 
+	
 	public void sendMessage(String msg) {
 		try {
 			out.write(msg);
