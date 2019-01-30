@@ -98,9 +98,11 @@ public class Score {
 	
 	public static int getAreaScore(Board board) {
 		int score = 0;
+		Boolean test = false;
 		for (int i = 0; i < board.getSize(); i++) {
 			for (int j = 0; j < board.getSize(); j++) {
 				if (!board.isEmptyField(i, j)) {
+					test = true;
 					if (board.getField(i, j).getGroup().getColor() == Constants.EMPTY
 							&& board.getField(i, j).getGroup().getLiberties().size() == 0) {
 						score += board.getField(i, j).getGroup().getStones().size();
@@ -110,7 +112,12 @@ public class Score {
 
 			}
 		}
+		if(test) {
 		return score;
+		}else {
+			return 0;
+		}
+		
 	}
 	
 	

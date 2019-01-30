@@ -8,7 +8,7 @@ public class ComputerPlayer extends Player {
 	
 	public ComputerPlayer() {
 		super();
-		this.strategy = new NaiveStrategy();
+		this.strategy = new Chainformation();
 		
 	}
 

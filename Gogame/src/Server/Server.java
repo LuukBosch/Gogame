@@ -35,7 +35,7 @@ public class Server extends Thread {
 	 * If a port number is given a server socket is created. 
 	 */
 	public Server() {
-		initializePort();
+		//initializePort();
 		createPort();
 		gameNumber_games = new HashMap<Integer, Game>();
 
@@ -69,7 +69,7 @@ public class Server extends Thread {
 	 */
 	public void createPort() {
 		try {
-			serverSocket = new ServerSocket(port);
+			serverSocket = new ServerSocket(8000);
 		} catch (IOException e) {
 			System.out.println("Not a valid port, try again");
 			initializePort();

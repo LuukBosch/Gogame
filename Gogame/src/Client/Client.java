@@ -19,10 +19,9 @@ import Game.History;
 import static Game.EnforceRule.enforceRules;
 
 /**
- * Client class for a simple client-server application
- * 
- * @author Theo Ruys
- * @version 2005.02.21
+ * Class for creating a go playing client.
+ * @author luuk.bosch
+ *
  */
 public class Client extends Thread {
 	
@@ -47,20 +46,31 @@ public class Client extends Thread {
 		new Client();
 	}
 
+	/**
+	 * Creates a client and starts a Tui that can handle user input. 
+	 */
 	public Client() {
 		history = new History();
 		tui = new ClientTUI(this);
 		tui.start();
 	}
 
+	/**
+	 * Returns the history of the game the client is participating in. 
+	 * @return History of the game the client is participating
+	 */
 	public History getHistory() {
 		return history;
 	}
 	
 
-	                        
+	/**                        
+	 * Checks if the given portnumber is a valid port number.
+	 * if this is the case it sets the port
+	 * @param port
+	 */
 	public void initializePort(int port) {
-		if (port < 0) {
+		if (port < 0 || port > 64535) {
 			System.out.println("not valid!");
 		} else {
 			this.port = port;
@@ -69,37 +79,11 @@ public class Client extends Thread {
 		}
 
 	}
-
-	public void createPlayer(int choice) {
-		if (choice == 1) {
-			player = new HumanPlayer();
-		} else {
-			player = new ComputerPlayer();
-		}
-
-	}
-
-	public Player getPlayer() {
-		return player;
-	}
-
-	public void initializeName(String name) {
-		if (name.length() < 1 || name.contains("+")) {
-			System.out.println("not Valid!");
-		} else {
-			this.clientName = name;
-			System.out.println("Name is:  " + name);
-		}
-	}
-
-	public String getPlayerName() {
-		return clientName;
-	}
-
-	public Board getBoard() {
-		return bord;
-	}
-
+	
+	/**
+	 * initializes the ip address of the future host. 
+	 * @param ip
+	 */
 	public void initializeIP(String ip) {
 		try {
 			host = InetAddress.getByName(ip);
@@ -112,6 +96,65 @@ public class Client extends Thread {
 
 	}
 
+	
+	/**
+	 * Creates either a Human or Computer player. 
+	 * @param choice
+	 */
+	public void createPlayer(int choice) {
+		if (choice == 1) {
+			player = new HumanPlayer();
+		} else {
+			player = new ComputerPlayer();
+		}
+
+	}
+
+	/**
+	 * returns the player of the client
+	 * @return
+	 */
+	public Player getPlayer() {
+		return player;
+	}
+
+	
+	/**
+	 * Initialize the name of the client. Name is not allow to contain +. 
+	 * @param name
+	 */
+	public void initializeName(String name) {
+		if (name.length() < 1 || name.contains("+")) {
+			System.out.println("not Valid!");
+		} else {
+			this.clientName = name;
+			System.out.println("Name is:  " + name);
+		}
+	}
+
+	/**
+	 * Returns the playername 
+	 * @return 
+	 */
+	public String getPlayerName() {
+		return clientName;
+	}
+
+	
+	/**
+	 * Returns to bord of the game the client is playing. 
+	 * @return
+	 */
+	public Board getBoard() {
+		return bord;
+	}
+	
+	
+
+	
+	/**
+	 * Tries to build a socket connection with a server
+	 */
 	public void buildSocket() {
 		try {
 			sock = new Socket(host, port);
@@ -127,6 +170,9 @@ public class Client extends Thread {
 		}
 	}
 
+	/**
+	 * Sends the first handshake to the server if a socket connection was build successfully.  
+	 */
 	public void startGame() {
 
 		buildSocket();
@@ -137,6 +183,9 @@ public class Client extends Thread {
 		}
 	}
 
+	/**
+	 * Reads messages send by the server
+	 */
 	public void run() {
 		String line = null;
 		try {
@@ -150,15 +199,28 @@ public class Client extends Thread {
 		}
 	}
 
+	
+	/**
+	 * returns gameid 
+	 * @return
+	 */
 	public int getGameId() {
 		return gameID;
 	}
 
+	/**
+	 * returns the color of the player
+	 * @return
+	 */
 	public int getColor() {
 		return color;
 	}
 	
 	
+	/**
+	 * Handles messages that are send by the server
+	 * @param message
+	 */
 	public synchronized void handleMessage(String message) {
 		System.out.println(message);
 		try {
@@ -200,11 +262,20 @@ public class Client extends Thread {
 		}
 	}
 
+	
+	/**
+	 * sets the color of the player based upon the incomming message. 
+	 * @param message
+	 */
 	public void acknowledgeConfig(String[] message) {
 		color = Integer.parseInt(message[2]);
 
 	}
 
+	/**
+	 * Creates a board that can be used to internally keep track of the game
+	 * @param message
+	 */
 	public void createBoard(String[] message) {
 		bord = new Board(Integer.valueOf(message[3]));
 		String[] gamestatus = message[4].split(";");
@@ -212,6 +283,10 @@ public class Client extends Thread {
 		history.addSituation(board);
 	}
 
+	/**
+	 * Shutsdown the program if the user doesn't want to play a rematch 
+	 * @param choice
+	 */
 	public void rematch(String choice) {
 		if (choice.contentEquals("1")) {
 		} else {
@@ -219,11 +294,19 @@ public class Client extends Thread {
 		}
 	}
 
+	/**
+	 * Starts the gui used to display the Game. 
+	 * The size of the board is determined by the message of the server
+	 * @param message
+	 */
 	public void startGui(String[] message) {
 		gogui = new GoGuiIntegrator(false, true, Integer.parseInt(message[3]));
 		gogui.startGUI();
 	}
 
+	/**
+	 * Displays a hint on the board if the user requests this. 
+	 */
 	public void setHint() {
 		hintPlayer = new ComputerPlayer();
 		int hint = hintPlayer.determineMove(getBoard(), getHistory(), getColor());
@@ -232,13 +315,23 @@ public class Client extends Thread {
 		gogui.addHintIndicator(col, row);
 
 	}
-
+	
+	
+	/**
+	 * Adds a game situation to the history. 
+	 * @param message
+	 */
 	public void addToHistory(String[] message) {
 		String[] gamestatus = message[3].split(";");
 		String board = gamestatus[2];
 		history.addSituation(board);
 	}
 
+	
+	/**
+	 * Plays a move on the client his own board. 
+	 * @param message
+	 */
 	public void playOwnBoard(String[] message) {
 		String movestring = message[2];
 		int move = Integer.valueOf(movestring.split(";")[0]);
@@ -252,6 +345,12 @@ public class Client extends Thread {
 
 	}
 
+	
+	
+	/**
+	 * Draws a board send by the user on the gui. 
+	 * @param message
+	 */
 	public void drawBoard(String[] message) {
 		String[] gamestatus = message[3].split(";");
 		String board = gamestatus[2];
@@ -271,20 +370,11 @@ public class Client extends Thread {
 		}
 	}
 
-	public void printBoard(String[] board) {
-		int size = board.length;
-		int width = (int) Math.sqrt(size);
-		int count = 0;
-		for (int i = 0; i < size; i++) {
-			count++;
-			if (count == width) {
-				System.out.println("");
-				count = 0;
-			}
-		}
-	}
 
-	
+	/**
+	 * Sends a message to the server
+	 * @param msg
+	 */
 	public void sendMessage(String msg) {
 		try {
 			out.write(msg);
@@ -295,6 +385,10 @@ public class Client extends Thread {
 		}
 	}
 
+	
+	/**
+	 * Shutsdown the programm. 
+	 */
 	private void shutdown() {
 		try {
 			sock.close();

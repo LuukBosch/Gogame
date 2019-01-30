@@ -38,7 +38,7 @@ public class History {
 	}
 
 	/**
-	 * Returns the amount of previous board positions. 
+	 * Returns the size of the board. 
 	 * @return
 	 */
 	public int getSize() {

@@ -3,7 +3,6 @@ package Client;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 import Game.Board;
 import Game.History;
@@ -15,12 +14,6 @@ public class NaiveStrategy implements Strategy{
 
 	@Override
 	public int determineMove(Board board, History history, int color) {
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		ArrayList<Integer> possiblemoves = new ArrayList<Integer>();
 		for (int i = 0; i < history.getSize(); i++) {
 			if (MoveValidator.isValidMove(board, i, color, history)) {

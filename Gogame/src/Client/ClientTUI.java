@@ -103,25 +103,28 @@ public class ClientTUI {
 		} else {
 			System.out.println("\u274C");
 		}
+		if(!configNotSet) {
 		System.out.print("  Color:      ");
 		if (client.getColor() == Constants.BLACK) {
 		System.out.println("⚫");
 		} else {
 		System.out.println("⚪");
 		}
+		}
 		System.out.println("┗━━━━━━━━━━━━━━━━┛");
+
 	}
 
 	private void executeChoice(int choice) {
 		if (choice == 1) {
-			port = readIntWithPrompt("Enter port number:  ");
-			client.initializePort(port);
+			//port = readIntWithPrompt("Enter port number:  ");
+			client.initializePort(2001);
 		} else if (choice == 2) {
-			adress = readStringWithPrompt("Enter host Adress:  ");
-			client.initializeIP(adress);
+			//adress = readStringWithPrompt("Enter host Adress:  ");
+			client.initializeIP("NVC3819");
 		} else if (choice == 3) {
-			playerChoice = readIntWithPrompt("Do you want to play with Computer(0) or Human (1)");
-			client.createPlayer(playerChoice);
+			//playerChoice = readIntWithPrompt("Do you want to play with Computer(0) or Human (1)");
+			client.createPlayer(0);
 			playercheck = true;
 		} else if (choice == 4) {
 			if (playercheck && adresscheck && portcheck) {

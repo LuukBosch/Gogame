@@ -62,7 +62,6 @@ public class Intersection {
 	 * @return
 	 */
 	public Group getGroup() {
-		
 		return group;
 	}
 	
