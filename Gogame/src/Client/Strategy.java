@@ -6,7 +6,7 @@ import Game.History;
 public interface Strategy {
 	
 	
-	public int determineMove(Board board, History history, int color);
+	public int determineMove(Board board, History history, int color, int maxtime);
 	
 	
 

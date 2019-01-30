@@ -18,10 +18,7 @@ import static Game.Score.getScore;
 
 
 public class Game {
-	/**
-	 * The game consists out of two players and a bord. The game keeps track of the history and enforces all the rules. 
-	 * It communicates with the clienthandlers according to the procotocol.  
-	 */
+	
 	private Board board;
 	private ClientHandler[] players = new ClientHandler[2];
 	private HashMap<ClientHandler, Integer> player_Color;
@@ -39,7 +36,10 @@ public class Game {
 	private boolean rematch = false;
 
 	
-
+	/**
+	 * Creates a new game with a specific gameid
+	 * @param gameid Gameid specific for this game. 
+	 */
 	public Game(int gameid) {
 		history = new History();
 		player_Color = new HashMap<ClientHandler, Integer>();
@@ -50,7 +50,7 @@ public class Game {
 	
 	/**
 	 * adds the first player that is assigned by the server
-	 * @param player
+	 * @param player ClientHandler 
 	 */
 	public void addFirstPlayer(ClientHandler player) {
 		players[0] = player;
@@ -58,7 +58,7 @@ public class Game {
 	
 	/**
 	 * adds the second player that is assigned by the server
-	 * @param player
+	 * @param player ClientHandler 
 	 */
 	public void addSecondPlayer(ClientHandler player) {
 		players[1] = player;
@@ -66,19 +66,18 @@ public class Game {
 	
 	/**
 	 * Sets a playername. 
-	 * @param player Player that needs to be named
-	 * @param name name of the player
+	 * @param player Player that needs to be named.
+	 * @param name player name
 	 */
 	public void setPlayerName(ClientHandler player, String name) {
 		player.setPlayerName(name);
 	}
 
-	
-	//-----------getters
+
 	/**
-	 * Returns the color of a given player
-	 * @param player
-	 * @return
+	 * Returns the color of a given player.
+	 * @param player Clienthandler
+	 * @return returns color of the player.
 	 */
 	public int getColor(ClientHandler player) {
 		return player_Color.get(player);
@@ -88,7 +87,7 @@ public class Game {
 	/**
 	 * Returns the player with the given color
 	 * @param color
-	 * @return
+	 * @return Player corresponding to the given color
 	 */
 	public ClientHandler getPlayer(int color) {
 		if (getColor(players[0]) == color) {
@@ -100,8 +99,8 @@ public class Game {
 
 	/**
 	 * Returns the opponent of a given player
-	 * @param player
-	 * @return
+	 * @param player Clienthandler
+	 * @return opponent of given player
 	 */
 	public ClientHandler getOpponent(ClientHandler player) {
 		if (player == players[0]) {
@@ -112,7 +111,7 @@ public class Game {
 
 	/**
 	 * Returns the color that is not yet occupied by a player
-	 * @return
+	 * @return color that is not occupied
 	 */
 	public int getLeftcolor() {
 		if (getColor(players[0]) == Constants.BLACK) {
@@ -125,7 +124,7 @@ public class Game {
 	
 	/**
 	 * Returns the board.
-	 * @return
+	 * @return Board of the game
 	 */
 	public Board getBoard() {
 		return board;
@@ -133,7 +132,7 @@ public class Game {
 
 	/**
 	 * Returns the size of the board. 
-	 * @return
+	 * @return size
 	 */
 	public int getSize() {
 		return board.getSize();
@@ -141,7 +140,7 @@ public class Game {
 	
 	/**
 	 * Returns the color that is to move.
-	 * @return
+	 * @return color of the player that is to move
 	 */
 	public int getTurn() {
 		return turn;
@@ -149,7 +148,7 @@ public class Game {
 
 	/**
 	 * Returns the color that did the previous move. 
-	 * @return
+	 * @return color of the player that did the previous move
 	 */
 	public int getPrevTurn() {
 		if (turn == Constants.BLACK) {
@@ -163,8 +162,8 @@ public class Game {
 	
 	/**
 	 * Assigns a color to a player
-	 * @param player
-	 * @param color
+	 * @param player Clienthandeler
+	 * @param color color
 	 */
 	public void setColorPlayer(ClientHandler player, int color) {
 		player_Color.put(player, color);
@@ -190,8 +189,8 @@ public class Game {
 	
 	/**
 	 * checks if given color is to move. 
-	 * @param player
-	 * @return
+	 * @param player Clienthandler
+	 * @return if player is to move or not
 	 */
 	public boolean isTurn(ClientHandler player) {
 		return turn == player_Color.get(player);
@@ -202,7 +201,7 @@ public class Game {
 	 * Checks if a move suggested by a player is valid or not. 
 	 * @param move
 	 * @param player
-	 * @return
+	 * @return if voldig move or not
 	 */
 	public boolean isValidMove(int move, ClientHandler player) {
 		return MoveValidator.isValidMove(board, move, getColor(player), history);
@@ -223,10 +222,10 @@ public class Game {
 	}
 
 	/**
-	 * Handles all the incoming messages of the clients. Only messages obeying the protocol
-	 * are processed. 
-	 * @param player
-	 * @param message
+	 * Handles all the incoming messages of the clients.
+	 * Only messages obeying the protocol are processed. 
+	 * @param player ClientHandeler sending the message
+	 * @param message Message containing information from the client
 	 */
 	public void HandleIncommingMesg(ClientHandler player, String message) {
 		try {
@@ -261,7 +260,7 @@ public class Game {
 	
 	/**
 	 * Handles the incoming move. Checks if it is the player his turn, if the move is valid and 
-	 * if it is a pass. If this is not the case it call playmove. 
+	 * if it is a pass. The results the function depends on the parameter stated before. 
 	 * @param player The player that wants to play the move
 	 * @param message	message containing the move index
 	 */
@@ -336,9 +335,10 @@ public class Game {
 		}
 		if (rematchcount == 2) {
 			if (rematch) {
+				resetGame();
 				sendAcknowledgeRematch(1);
 				sendAcknowledgeConfig();
-				resetGame();
+
 			}else {
 			sendAcknowledgeRematch(0);
 			}
@@ -363,9 +363,9 @@ public class Game {
 	
 
 	/**
-	 * Assigns first player
-	 * @param player
-	 * @param message
+	 * Assigns first player and send Request_config message
+	 * @param player Clienthandler that send the message.
+	 * @param message message containing player name.
 	 */
 	public void assignFirstPlayer(ClientHandler player, String[] message) {
 		setPlayerName(player, message[1]);
@@ -376,8 +376,8 @@ public class Game {
 	
 	/**
 	 * Assigns second player
-	 * @param player
-	 * @param message
+	 * @param player Clienthandler that send the message.
+	 * @param message containing player name.
 	 */
 	public void assignSecondPlayer(ClientHandler player, String[] message) {
 		setPlayerName(player, message[1]);
@@ -389,12 +389,14 @@ public class Game {
 	}
 	
 	/**
-	 * Resets the name
+	 * Resets the Game
 	 */
 	public void resetGame() {
 		board = new Board(board.getSize());
 		history = new History();
 		turn = Constants.BLACK;
+		status = Constants.PLAYING;
+		
 	}
 
 	

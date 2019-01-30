@@ -14,7 +14,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static Game.MoveValidator.isValidMove;
 
-
+/**
+ * Test the MoveValidator function using a Board and a history. 
+ * @author luuk.bosch
+ *
+ */
 public class MoveValidatorTest {
 	Board board;
 	History history;
@@ -25,6 +29,10 @@ public class MoveValidatorTest {
 		board = new Board();		
 		history = new History();
 	}
+	
+	/**
+	 * Tests if a occupied field is marked as a invalid move. 
+	 */
 	
 	@Test
 	public void testOccupiedField() {
@@ -51,12 +59,18 @@ public class MoveValidatorTest {
 		
 	}
 	
+	/**
+	 * Tests if a outside board field is marked as invalid. 
+	 */
 	@Test
 	public void testNoField() {
 		assertFalse(isValidMove(board, 81, 1, history));
 		assertFalse(isValidMove(board, -2, 2, history));
 	}
 	
+	/**
+	 * Checks that pass is seen as a valid move. 
+	 */
 	@Test
 	public void testPass() {
 	
@@ -64,7 +78,9 @@ public class MoveValidatorTest {
 	}
 	
 	
-	
+	/**
+	 * Test if a move that results in a previous board state is marked as invalid.
+	 */
 	@Test
 	public void testSuperKoRule() {
 		board.setField(0, 1, 1);
@@ -82,10 +98,4 @@ public class MoveValidatorTest {
 		
 		
 	}
-
-	
-	
-	
-	
-	
 }

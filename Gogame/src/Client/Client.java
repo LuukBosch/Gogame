@@ -8,13 +8,12 @@ import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Scanner;
+
 
 import com.nedap.go.gui.GoGuiIntegrator;
 
 import Game.Board;
 import Game.Constants;
-import Game.EnforceRule;
 import Game.History;
 import static Game.EnforceRule.enforceRules;
 
@@ -28,6 +27,7 @@ public class Client extends Thread {
 	private int port;
 	private int gameID;
 	private int color;
+	private int maxtime;
 	
 	private String clientName;
 	private Socket sock;
@@ -40,6 +40,7 @@ public class Client extends Thread {
 	private Player hintPlayer;
 	private History history;
 	private Board bord;
+	
 	private boolean connectionSuccessful = true;
 
 	public static void main(String args[]) throws IOException {
@@ -101,12 +102,16 @@ public class Client extends Thread {
 	 * Creates either a Human or Computer player. 
 	 * @param choice
 	 */
-	public void createPlayer(int choice) {
+	public void createPlayer(int choice, int maxtime) {
+		this.maxtime = maxtime;
 		if (choice == 1) {
 			player = new HumanPlayer();
-		} else {
+			tui.playerSet();
+		} else if( choice == 0 ) {
 			player = new ComputerPlayer();
+			tui.playerSet();
 		}
+		
 
 	}
 
@@ -248,11 +253,12 @@ public class Client extends Thread {
 				tui.invalidMove(messagesplit);
 				tui.getMove();
 			} else if (messagesplit[0].equals(Constants.GAME_FINISHED)) {
+				System.out.println("stopGui!");
 				gogui.stopGUI();
 			} else if (messagesplit[0].equals(Constants.REQUEST_REMATCH)) {
 				tui.askRematch();
 			} else if (messagesplit[0].equals(Constants.ACKNOWLEDGE_REMATCH)) {
-				rematch(messagesplit[1]);
+				System.out.println("done");
 			} else {
 				System.out.println(message + " is unknown");
 			}
@@ -283,16 +289,6 @@ public class Client extends Thread {
 		history.addSituation(board);
 	}
 
-	/**
-	 * Shutsdown the program if the user doesn't want to play a rematch 
-	 * @param choice
-	 */
-	public void rematch(String choice) {
-		if (choice.contentEquals("1")) {
-		} else {
-			shutdown();
-		}
-	}
 
 	/**
 	 * Starts the gui used to display the Game. 
@@ -309,7 +305,7 @@ public class Client extends Thread {
 	 */
 	public void setHint() {
 		hintPlayer = new ComputerPlayer();
-		int hint = hintPlayer.determineMove(getBoard(), getHistory(), getColor());
+		int hint = hintPlayer.determineMove(getBoard(), getHistory(), getColor(), maxtime);
 		int col = hint % bord.getSize();
 		int row = (hint - col) / bord.getSize();
 		gogui.addHintIndicator(col, row);
@@ -389,14 +385,12 @@ public class Client extends Thread {
 	/**
 	 * Shutsdown the programm. 
 	 */
-	private void shutdown() {
+	protected void shutdown() {
 		try {
 			sock.close();
 			System.out.println("Connection with server lost!");
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally {
-			System.exit(0);
 		}
 	}
 

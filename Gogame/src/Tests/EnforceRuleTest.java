@@ -8,6 +8,11 @@ import org.junit.Test;
 import Game.Board;
 import static Game.EnforceRule.enforceRules;
 
+/**
+ * Tests if the capturing of groups is done in a proper way. 
+ * @author luuk.bosch
+ *
+ */
 public class EnforceRuleTest {
 	Board board;
 	Board board2;
@@ -18,16 +23,24 @@ public class EnforceRuleTest {
 		board = new Board();	
 	}
 	
+	/**
+	 * Tests a simple caputring of a single stone. 
+	 */
+	
 	@Test
 	public void testSimpleCapture() {
-		board.setField(0, 1, 1);
-		board.setField(0, 0, 2);
-		board.setField(1, 0, 1);
-		enforceRules(board, 1);
-		assertTrue(board.isEmptyField(0, 0));	
+		board.setField(1, 1, 1);
+		board.setField(0, 1, 2);
+		board.setField(2, 1, 2);
+		board.setField(1, 0, 2);
+		board.setField(1, 2, 2);
+		enforceRules(board, 2);
+		assertTrue(board.isEmptyField(1, 1));	
 	}
 	
-	
+	/**
+	 * Tests the capturing of a single stone in all corners
+	 */
 	@Test
 	public void testAllCornerCaptures() {
 		board.setField(0, 1, 2);
@@ -53,6 +66,9 @@ public class EnforceRuleTest {
 		
 	}
 	
+	/**
+	 * Tests the capturing of a larger group on the edge of the board.  
+	 */
 	@Test
 	public void testLargeCaputre() {
 		board.setField(0, 0, 1);
@@ -77,6 +93,9 @@ public class EnforceRuleTest {
 		assertTrue(board.isEmptyField(5, 0));
 	}
 	
+	/**
+	 * Tests the capturing of a larger group in the middle of the board. 
+	 */
 	@Test
 	public void midBoardCapture() {
 		board.setField(5, 5, 1);
@@ -103,6 +122,9 @@ public class EnforceRuleTest {
 		assertTrue(board.isEmptyField(6, 5));
 	}
 	
+	/**
+	 * Tests if the order of Capturing/suicide is done properly. 
+	 */
 	@Test
 	public void captureBeforeSuicide() {
 		

@@ -9,7 +9,7 @@ import Game.History;
 	    }
 
 	    
-	    public int determineMove(Board board, History history, int color) {
+	    public int determineMove(Board board, History history, int color, int maxtime) {
 	        int choice = readInt("what is your choice? ");
 	        return choice;
 	    }

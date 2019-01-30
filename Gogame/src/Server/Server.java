@@ -15,9 +15,6 @@ import java.util.Scanner;
 
 
 public class Server extends Thread {
-	/**
-	 * 
-	 */
 	private int port;
 	private int gameid = 0;
 	private HashMap<Integer, Game> gameNumber_games;
@@ -35,7 +32,7 @@ public class Server extends Thread {
 	 * If a port number is given a server socket is created. 
 	 */
 	public Server() {
-		//initializePort();
+		initializePort();
 		createPort();
 		gameNumber_games = new HashMap<Integer, Game>();
 
@@ -65,11 +62,11 @@ public class Server extends Thread {
 
 	/**
 	 * Tries to Create a server socket using the port given by the user. 
-	 * If this fails a new port is asked and a other attempt is made until it succeeds.  
+	 * If this fails a new port is asked and an other attempt is made until it succeeds.  
 	 */
 	public void createPort() {
 		try {
-			serverSocket = new ServerSocket(8000);
+			serverSocket = new ServerSocket(port);
 		} catch (IOException e) {
 			System.out.println("Not a valid port, try again");
 			initializePort();
@@ -92,7 +89,7 @@ public class Server extends Thread {
 				System.out.println("connected to new Client!");
 				addToGame(sock);
 			} catch (IOException e) {
-				e.printStackTrace();
+				System.out.println("Connection failed");
 			}
 		}
 	}
@@ -100,7 +97,7 @@ public class Server extends Thread {
 	/**
 	 * Adds the incomming clients to a game. If no game is available a new instance of Game is created. 
 	 * Games are given a GameId and are stored in a list
-	 * @param sock
+	 * @param sock Socket 
 	 */
 	public void addToGame(Socket sock) {
 		if (gameAvailable == false) {

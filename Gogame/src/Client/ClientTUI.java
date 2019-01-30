@@ -7,7 +7,11 @@ import java.util.Observer;
 import java.util.Scanner;
 
 import Game.Constants;
-
+/**
+ * Responsible for providing a Tui for the client class.
+ * @author luuk.bosch
+ *
+ */
 public class ClientTUI {
 	Client client;
 	Scanner in;
@@ -15,6 +19,7 @@ public class ClientTUI {
 	boolean portcheck = false, adresscheck = false, playercheck = false, leader, configNotSet = true, turn = false;
 	int port;
 	int playerChoice;
+	int maxtime;
 	String adress;
 	String player = "Computerplayer";
 	
@@ -118,14 +123,15 @@ public class ClientTUI {
 	private void executeChoice(int choice) {
 		if (choice == 1) {
 			//port = readIntWithPrompt("Enter port number:  ");
-			client.initializePort(2001);
+			client.initializePort(8000);
 		} else if (choice == 2) {
 			//adress = readStringWithPrompt("Enter host Adress:  ");
-			client.initializeIP("NVC3819");
+			client.initializeIP("127.0.0.1");
 		} else if (choice == 3) {
-			//playerChoice = readIntWithPrompt("Do you want to play with Computer(0) or Human (1)");
-			client.createPlayer(0);
-			playercheck = true;
+			playerChoice = readIntWithPrompt("Do you want to play with Computer(0) or Human (1)");	
+			maxtime = readIntWithPrompt("What is the maximum playing time(in seconds)?  ");	
+			client.createPlayer(playerChoice, maxtime);
+
 		} else if (choice == 4) {
 			if (playercheck && adresscheck && portcheck) {
 				String name = readStringWithPrompt("Enter a name please:  ");
@@ -188,11 +194,12 @@ public class ClientTUI {
 		portcheck= true;
 	}
 	
-	
-
+	public void playerSet() {
+		playercheck = true;
+	}
 	
 	public void setMove(){
-		int move = client.getPlayer().determineMove(client.getBoard(), client.getHistory(), client.getColor());
+		int move = client.getPlayer().determineMove(client.getBoard(), client.getHistory(), client.getColor(), maxtime);
 		System.out.println("move played is: " + move);
 		client.sendMessage(Constants.MOVE + Constants.DELIMITER + client.getGameId() + Constants.DELIMITER
 				+ client.getPlayerName() + Constants.DELIMITER + move);
@@ -213,7 +220,7 @@ public class ClientTUI {
 			client.sendMessage(Constants.SET_REMATCH+Constants.DELIMITER+1);
 		} else {
 			client.sendMessage(Constants.SET_REMATCH+Constants.DELIMITER+0);
-		}
+			}
 	}
 
 	public void invalidMove(String[] message) {

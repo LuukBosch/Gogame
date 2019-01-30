@@ -7,8 +7,7 @@ public abstract class Player {
 	
 	public Player() {
 	}
-	
-	
-	public abstract int determineMove(Board board, History history, int color);
+
+	public abstract int determineMove(Board board, History history, int color, int maxtime);
 
 }

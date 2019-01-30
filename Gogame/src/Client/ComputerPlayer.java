@@ -8,7 +8,7 @@ public class ComputerPlayer extends Player {
 	
 	public ComputerPlayer() {
 		super();
-		this.strategy = new Chainformation();
+		this.strategy = new Chainformation2();
 		
 	}
 
@@ -22,8 +22,8 @@ public class ComputerPlayer extends Player {
 	
 
 	@Override
-	public int determineMove(Board board, History history, int color) {
-		int move = strategy.determineMove(board, history, color);
+	public int determineMove(Board board, History history, int color, int maxtime) {
+		int move = strategy.determineMove(board, history, color, maxtime);
 		return move;
 	}
 }

@@ -9,6 +9,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * Simple Intersection test. More functions of Intersection are tested in different tests. 
+ * @author luuk.bosch
+ *
+ */
+
 
 public class Intersectiontest {
     private Intersection intersection1;
@@ -26,12 +32,18 @@ public class Intersectiontest {
     }
     
     
+    /**
+     * Tests getRow() function of Intersection
+     */
     @Test
     public void testgetRow() {
     	assertEquals(0, intersection1.getRow());
     	assertEquals(5, intersection2.getRow());
     	assertEquals(2, intersection3.getRow());
     }
+    /**
+     * Tests getCol function of Intersection
+     */
     
     @Test
     public void testgetCol() {
