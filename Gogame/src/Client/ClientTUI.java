@@ -122,11 +122,11 @@ public class ClientTUI {
 
 	private void executeChoice(int choice) {
 		if (choice == 1) {
-			//port = readIntWithPrompt("Enter port number:  ");
-			client.initializePort(8000);
+			port = readIntWithPrompt("Enter port number:  ");
+			client.initializePort(port);
 		} else if (choice == 2) {
-			//adress = readStringWithPrompt("Enter host Adress:  ");
-			client.initializeIP("127.0.0.1");
+			adress = readStringWithPrompt("Enter host Adress:  ");
+			client.initializeIP(adress);
 		} else if (choice == 3) {
 			playerChoice = readIntWithPrompt("Do you want to play with Computer(0) or Human (1)");	
 			maxtime = readIntWithPrompt("What is the maximum playing time(in seconds)?  ");	
