@@ -17,9 +17,9 @@ import java.util.Scanner;
 public class Server extends Thread {
 	private int port;
 	private int gameid = 0;
-	private HashMap<Integer, Game> gameNumber_games;
+	private HashMap<Integer, GameHandler> gameNumber_games;
 	private boolean gameAvailable;
-	private Game game;
+	private GameHandler game;
 	private ServerSocket serverSocket;
 
 	public static void main(String args[]) {
@@ -34,7 +34,7 @@ public class Server extends Thread {
 	public Server() {
 		initializePort();
 		createPort();
-		gameNumber_games = new HashMap<Integer, Game>();
+		gameNumber_games = new HashMap<Integer, GameHandler>();
 
 	}
 	
@@ -98,11 +98,11 @@ public class Server extends Thread {
 	 * Adds the incomming clients to a game. If no game is available a new instance of Game is created. 
 	 * Games are given a GameId and are stored in a list
 	 * @param sock Socket 
-	 */
+	*/
 	public void addToGame(Socket sock) {
 		if (gameAvailable == false) {
 			try {
-				game = new Game(gameid);
+				game = new GameHandler(gameid);
 				gameNumber_games.put(gameid, game);
 				ClientHandler clientHandler = new ClientHandler(game, sock);
 				clientHandler.start();

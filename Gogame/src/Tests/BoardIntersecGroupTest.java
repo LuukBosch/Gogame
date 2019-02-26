@@ -38,6 +38,7 @@ public class BoardIntersecGroupTest {
 	 */
 	@Test
 	public void testIsField() {
+		System.out.println(board2.toString());
 		assertTrue(board.isField(0, 0));
 		assertTrue(board.isField(0, 8));
 		assertTrue(board.isField(8, 0));

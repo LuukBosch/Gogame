@@ -17,7 +17,7 @@ import java.net.Socket;
 
 
 public class ClientHandler extends Thread {
-    private Game game;
+    private GameHandler game;
     private BufferedReader in;
     private BufferedWriter out;
     private String playername;
@@ -29,7 +29,7 @@ public class ClientHandler extends Thread {
      *@ requires server != null && sock != null;
      */
     
-    public ClientHandler(Game serverArg, Socket sockArg) throws IOException {
+    public ClientHandler(GameHandler serverArg, Socket sockArg) throws IOException {
         this.game = serverArg;
         this.sock = sockArg;
         this.in = new BufferedReader(new InputStreamReader(this.sock.getInputStream()));
@@ -67,7 +67,7 @@ public class ClientHandler extends Thread {
     public void run() {
         String nextLine;
         try {
-            while ((nextLine = this.in.readLine()) != null) {
+            while ((nextLine = in.readLine()) != null) {
                 game.HandleIncommingMesg(this, nextLine);
             }
             shutdown();
@@ -99,13 +99,10 @@ public class ClientHandler extends Thread {
      */
 	private void shutdown() {
 		try {
-			game.removePlayer(this);
 			sock.close();
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally {
-			System.exit(0);
-		}
+		} 
 	}
 
 }

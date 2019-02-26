@@ -29,5 +29,6 @@ public static final String ACKNOWLEDGE_MOVE = "ACKNOWLEDGE_MOVE";
 public static final String REQUEST_REMATCH = "REQUEST_REMATCH";
 public static final String SET_REMATCH = "SET_REMATCH";
 public static final String ACKNOWLEDGE_REMATCH = "AKNOWLEDGE_REMATCH";
+public static final String UNKNOWN_COMMAND = "UNKOWN_COMMAND";
 
 }
