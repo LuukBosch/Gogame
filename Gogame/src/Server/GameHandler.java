@@ -165,7 +165,7 @@ public class GameHandler {
             	handleRematch(splitmessage);
                 break;
             default:
-               unvalidInput(player);
+               invalidInput(player);
         }
     }
 	
@@ -177,7 +177,7 @@ public class GameHandler {
 			assignSecondPlayer(player, input);
 			secondAssigned = true;
 		} else {
-			unvalidInput(player);
+			invalidInput(player);
 		}
 
 	}
@@ -237,8 +237,11 @@ public class GameHandler {
 		}
 	}
 	
-	
-	public void unvalidInput(ClientHandler player) {
+	/**
+	 * Sends invalid input message 
+	 * @param player
+	 */
+	public void invalidInput(ClientHandler player) {
 		messageSender.sendUnknownCommand(player);
 	}
 	/**
