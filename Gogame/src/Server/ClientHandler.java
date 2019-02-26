@@ -80,7 +80,7 @@ public class ClientHandler extends Thread {
      * This method can be used to send a message over the socket
      * connection to the Client. If the writing of a message fails,
      * the method concludes that the socket connection has been lost
-     * and shutdown() is called.
+     * and shutdown() is called. test
      */
     public void sendMessage(String msg) {
         try {
