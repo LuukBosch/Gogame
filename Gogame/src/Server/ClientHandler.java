@@ -22,6 +22,7 @@ public class ClientHandler extends Thread {
     private BufferedWriter out;
     private String playername;
     private Socket sock;
+    private boolean stopped = false;
 
     /**
      * Constructs a ClientHandler object
@@ -67,9 +68,10 @@ public class ClientHandler extends Thread {
     public void run() {
         String nextLine;
         try {
-            while ((nextLine = in.readLine()) != null) {
+            while ((nextLine = in.readLine()) != null && !stopped) {
                 game.HandleIncommingMesg(this, nextLine);
             }
+            System.out.println("Connection with: " + playername + " is lost!");
             shutdown();
         } catch (IOException e) {
             shutdown();
@@ -93,6 +95,14 @@ public class ClientHandler extends Thread {
             e.printStackTrace();
         }
     }
+    
+    public void GameOver() {
+    	stopped = true;
+    }
+    
+    public boolean isStopped() {
+    	return stopped;
+    }
 
     /**
      *shuts down the clienthandler
@@ -100,6 +110,8 @@ public class ClientHandler extends Thread {
 	private void shutdown() {
 		try {
 			sock.close();
+			game.handleExit(this);
+			stopped = true;
 		} catch (IOException e) {
 			e.printStackTrace();
 		} 

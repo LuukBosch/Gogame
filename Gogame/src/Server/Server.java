@@ -33,7 +33,6 @@ public class Server extends Thread {
 	 */
 	public Server() {
 		initializePort();
-		createPort();
 		gameNumber_games = new HashMap<Integer, GameHandler>();
 
 	}
@@ -45,33 +44,40 @@ public class Server extends Thread {
 	 * Ask the user for a port number. Stops if a valid int is given. 
 	 */
 	private void initializePort() {
-		int value = 0;
-		boolean intRead = false;
+		int value = -1;
 		Scanner line = new Scanner(System.in);
 		do {
 			System.out.print("Enter port number: ");
 			try (Scanner scannerLine = new Scanner(line.nextLine());) {
 				if (scannerLine.hasNextInt()) {
-					intRead = true;
 					value = scannerLine.nextInt();
 				}
 			}
-		} while (!intRead);
+		} while (!createPort(value));
 		port = value;
+		line.close();
+		System.out.println("listening on port: " + port);
 	}
 
 	/**
-	 * Tries to Create a server socket using the port given by the user. 
-	 * If this fails a new port is asked and an other attempt is made until it succeeds.  
+	 * Tries to Create a server socket using the port given by the user. If this
+	 * fails a new port is asked and an other attempt is made until it succeeds.
 	 */
-	public void createPort() {
-		try {
-			serverSocket = new ServerSocket(port);
-		} catch (IOException e) {
-			System.out.println("Not a valid port, try again");
-			initializePort();
-			createPort();
+	public boolean createPort(int port) {
+		boolean result;
+		if (port <= 0) {
+			result = false;
+		} else {
+			try {
+				serverSocket = new ServerSocket(port);
+				result = true;
+			} catch (IOException e) {
+				System.out.println("Not a valid port, try again");
+				result = false;
+
+			}
 		}
+		return result;
 
 	}
 
@@ -79,9 +85,7 @@ public class Server extends Thread {
 	 * Creates sockets for incoming clients. 
 	 */
 	public void run() {
-
 		while (true) {
-
 			Socket sock;
 			try {
 				System.out.println("Listening!");
@@ -99,10 +103,12 @@ public class Server extends Thread {
 	 * Games are given a GameId and are stored in a list
 	 * @param sock Socket 
 	*/
+	
+
 	public void addToGame(Socket sock) {
 		if (gameAvailable == false) {
 			try {
-				game = new GameHandler(gameid);
+				game = new GameHandler(gameid, this);
 				gameNumber_games.put(gameid, game);
 				ClientHandler clientHandler = new ClientHandler(game, sock);
 				clientHandler.start();
@@ -123,6 +129,13 @@ public class Server extends Thread {
 			}
 		}
 
+	}
+	
+	public void removeGame(GameHandler game) {
+		if (gameNumber_games.containsValue(game)) {
+			System.out.println("Game " + game.getGame().getid() + " is finished and has been removed");
+			gameNumber_games.remove(game.getGame().getid());
+		}
 	}
 
 }

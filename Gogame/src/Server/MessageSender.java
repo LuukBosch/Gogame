@@ -56,8 +56,8 @@ public class MessageSender {
 		
 	}
 
-	public void sendAcknowledgeHandshake(ClientHandler client, int isLeader) {
-		client.sendMessage(
+	public void sendAcknowledgeHandshake(ClientHandler player, int isLeader) {
+		player.sendMessage(
 				Constants.ACKNOWLEDGE_HANDSHAKE + Constants.DELIMITER + gamehandler.getGame().getid() + Constants.DELIMITER + isLeader);
 	}
 	
@@ -76,5 +76,7 @@ public class MessageSender {
 		player.sendMessage(Constants.REQUEST_CONFIG + Constants.DELIMITER + Constants.REQUEST_CONFIG_MESSAGE);
 		
 	}
+	
+	
 
 }
